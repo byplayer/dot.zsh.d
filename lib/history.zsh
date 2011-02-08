@@ -25,3 +25,5 @@ setopt hist_verify
 # 補完時にヒストリを自動的に展開する。
 setopt hist_expand
 
+# don't hist command if command started space 
+setopt hist_ignore_space
