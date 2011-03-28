@@ -29,7 +29,7 @@ function _git_not_pushed()
         return 0
       fi
     done
-    echo "{?}"
+    echo "?"
   fi
   return 0
 }
