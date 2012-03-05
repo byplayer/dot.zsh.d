@@ -10,4 +10,4 @@ alias rbctags="ctags --regex-ruby='/^[ \t]*([A-Z_][A-Z0-9_]*)[ \t]*=/\1/C,consta
 alias r="rails"
 alias be="bundle exec"
 alias berails="bundle exec rails"
-alias berails="bundle exec rake"
+alias berake="bundle exec rake"
