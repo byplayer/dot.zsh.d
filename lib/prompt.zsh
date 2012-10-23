@@ -75,6 +75,11 @@ add-zsh-hook precmd _update_vcs_info_msg
 PROMPT_FG_COLOR=white
 RPROMPT_FG_COLOR=white
 
+# git status
+# untracked yellow ●
+# modify    red ●
+# staged   green ●
+# unpush   red ▲
 VC_BRANCH_FG=blue
 VC_STAGED_FG=green
 VC_UNSTAGED_FG=red
