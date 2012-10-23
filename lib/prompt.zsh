@@ -45,7 +45,9 @@ function _update_vcs_info_msg() {
 
 function _git_not_pushed()
 {
-  if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ]; then
+
+    if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = "true" ] \
+       && [ "$(g remote | wc | awk '{print $1;}' 2>/dev/null)" -ne "0" ] ; then
     head="$(git rev-parse HEAD 2>/dev/null)"
     for x in $(git rev-parse --remotes)
     do
