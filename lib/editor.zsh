@@ -8,3 +8,5 @@ export ALTERNATE_EDITOR="emacs"
 
 alias ec="emacsclient"
 alias ecn='emacsclient -n'
+
+export PATH=$PATH:/usr/local/SublimeText
