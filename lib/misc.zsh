@@ -43,3 +43,6 @@ alias tmux="tmux -2"
 
 # add path private scripts
 export PATH=~/.bin:$PATH
+
+autoload bashcompinit
+bashcompinit
