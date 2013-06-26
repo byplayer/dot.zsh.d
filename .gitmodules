@@ -1,0 +1,3 @@
+[submodule "plugins/zaw"]
+	path = plugins/zaw
+	url = https://github.com/byplayer/zaw.git
