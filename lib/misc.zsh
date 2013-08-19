@@ -36,7 +36,14 @@ export MANPATH=/usr/local/tmux/man:`manpath -q`
 export LESS='-R'
 
 # alias 設定
-alias ls="ls -CF --color"
+case ${OSTYPE} in
+  darwin*)
+    alias ls="gls -CF --color"
+  ;;
+  *)
+    alias ls="ls -CF --color"
+    ;;
+esac
 
 # tmux
 alias tmux="tmux -2"

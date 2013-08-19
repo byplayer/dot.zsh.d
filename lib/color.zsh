@@ -2,6 +2,14 @@
 autoload -U colors
 colors
 
-eval `dircolors ~/.dir_colors -b`
+case ${OSTYPE} in
+  darwin*)
+    eval `gdircolors ~/.dir_colors -b`
+    ;;
+  *)
+    eval `dircolors ~/.dir_colors -b`
+    ;;
+esac
+
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 
