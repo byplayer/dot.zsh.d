@@ -39,6 +39,7 @@ export LESS='-R'
 case ${OSTYPE} in
   darwin*)
     alias ls="gls -CF --color"
+    export PATH=$PATH:/usr/local/bin
   ;;
   *)
     alias ls="ls -CF --color"
