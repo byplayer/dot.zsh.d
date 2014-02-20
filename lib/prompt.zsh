@@ -61,8 +61,14 @@ function _prompt_git_not_pushed()
 
 
 function _git_stat_update {
+  if [ -f ${RPROMPT_WORK} ] ; then
+    # running maybe
+    return 0
+  fi
+
   if [ $(_prompt_is_in_git) = "true" ] ; then
-    echo -n "%F{${RPROMPT_FG_COLOR}}[" > ${RPROMPT_WORK}
+    echo $(pwd) > ${RPROMPT_WORK}
+    echo -n "%F{${RPROMPT_FG_COLOR}}[" >> ${RPROMPT_WORK}
     echo -n "%F{${VC_BRANCH_FG}}$(_prompt_git_branch_name)" >> ${RPROMPT_WORK}
     echo -n "%F{${VC_STAGED_FG}}$(_prompt_git_staged)" >> ${RPROMPT_WORK}
     echo -n "%F{${VC_UNSTAGED_FG}}$(_prompt_git_unstaged)" >> ${RPROMPT_WORK}
@@ -75,14 +81,17 @@ function _git_stat_update {
 }
 
 function _async_git_stat_update {
-  rm -f ${RPROMPT_WORK}
   RPROMPT=$RPROMPT_BASE
   _git_stat_update &!
 }
 
 function TRAPUSR2 {
-  if [ -f ${TMPPREFIX}/prompt.$$ ] ; then
-    RPROMPT=$(cat ${RPROMPT_WORK})
+  if [ -f ${RPROMPT_WORK} ] ; then
+    lines=( ${(@f)"$(< ${RPROMPT_WORK})"} )
+    if [[ "$lines[1]" = "$(pwd)" ]] ; then
+      RPROMPT=$lines[2]
+    fi
+    rm -f ${RPROMPT_WORK}
 
     # Force zsh to redisplay the prompt.
     zle && zle reset-prompt
