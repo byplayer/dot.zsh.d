@@ -61,11 +61,6 @@ function _prompt_git_not_pushed()
 
 
 function _git_stat_update {
-  if [ -f ${RPROMPT_WORK} ] ; then
-    # running maybe
-    return 0
-  fi
-
   if [ $(_prompt_is_in_git) = "true" ] ; then
     echo $(pwd) > ${RPROMPT_WORK}
     echo -n "%F{${RPROMPT_FG_COLOR}}[" >> ${RPROMPT_WORK}
@@ -82,7 +77,10 @@ function _git_stat_update {
 
 function _async_git_stat_update {
   RPROMPT=$RPROMPT_BASE
-  _git_stat_update &!
+
+  if [ ! -f ${RPROMPT_WORK} ] ; then
+    _git_stat_update &!
+  fi
 }
 
 function TRAPUSR2 {
