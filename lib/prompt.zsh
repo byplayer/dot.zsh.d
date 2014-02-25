@@ -14,7 +14,7 @@ function _prompt_is_in_git {
 }
 
 function _prompt_git_branch_name {
-  echo $(git symbolic-ref --short HEAD)
+  echo $(git symbolic-ref --short HEAD 2> /dev/null || git rev-parse --short HEAD 2> /dev/null)
 }
 
 function _prompt_git_staged {
