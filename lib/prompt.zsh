@@ -3,7 +3,8 @@ autoload -Uz add-zsh-hook
 # for async update right prompt
 mkdir -p ${TMPPREFIX}
 
-RPROMPT_WORK=${TMPPREFIX}/prompt.$$
+RPROMPT_WORK_FNAME=zsh_prompt_hook.$$
+RPROMPT_WORK=${TMPPREFIX}/${RPROMPT_WORK_FNAME}
 
 function _prompt_is_in_git {
   if git rev-parse 2> /dev/null; then
@@ -77,6 +78,9 @@ function _git_stat_update {
 
 function _async_git_stat_update {
   RPROMPT=$RPROMPT_BASE
+
+  # fail safe to clean up dead file
+  find ${TMPPREFIX} -name ${RPROMPT_WORK_FNAME} -mmin +5 -type f -exec rm -f {} \;
 
   if [ ! -f ${RPROMPT_WORK} ] ; then
     _git_stat_update &!
