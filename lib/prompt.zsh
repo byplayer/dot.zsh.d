@@ -80,7 +80,9 @@ function _async_git_stat_update {
   RPROMPT=$RPROMPT_BASE
 
   # fail safe to clean up dead file
-  find ${TMPPREFIX} -name ${RPROMPT_WORK_FNAME} -mmin +5 -type f -exec rm -f {} \;
+  if [ -f ${RPROMPT_WORK} ] ; then
+    find ${TMPPREFIX} -name ${RPROMPT_WORK_FNAME} -mmin +5 -type f -exec rm -f {} \;
+  fi
 
   if [ ! -f ${RPROMPT_WORK} ] ; then
     _git_stat_update &!
