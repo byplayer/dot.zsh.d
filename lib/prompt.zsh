@@ -19,7 +19,7 @@ function _prompt_git_branch_name {
 }
 
 function _prompt_git_staged {
-  if ! git diff --staged --no-ext-diff --ignore-submodules --quiet --exit-code ; then
+  if ! git diff --staged --no-ext-diff --ignore-submodules --quiet --exit-code 2> /dev/null ; then
     echo "●"
   else
     echo ""
@@ -27,7 +27,7 @@ function _prompt_git_staged {
 }
 
 function _prompt_git_unstaged {
-  if ! git diff --no-ext-diff --ignore-submodules --quiet --exit-code ; then
+  if ! git diff --no-ext-diff --ignore-submodules --quiet --exit-code 2> /dev/null ; then
     echo "●"
   else
     echo ""
