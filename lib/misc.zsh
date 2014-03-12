@@ -50,5 +50,8 @@ esac
 # tmux
 alias tmux="tmux -2"
 
+# zsh-completions
+fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
+
 # add path private scripts
 export PATH=~/.bin:$PATH
