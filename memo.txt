@@ -1,4 +1,5 @@
 zaw
   ^gz   zaw
-  ^g^b  zaw-git-recent-all-branches
-  ^g^h zaw-history
+  ^gb   zaw-git-recent-all-branches
+  ^r    zaw-history
+  ^gc   zaw-cdr
