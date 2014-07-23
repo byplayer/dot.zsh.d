@@ -29,8 +29,8 @@ export MANPATH=/usr/local/mysql/man:`manpath -q`
 export LD_LIBRARY_PATH=/usr/local/mysql/lib/mysql:$LD_LIBRARY_PATH
 
 # tmux
-export PATH=/usr/local/tmux/bin:$PATH
-export MANPATH=/usr/local/tmux/man:`manpath -q`
+export PATH=/opt/tmux/bin:$PATH
+export MANPATH=/opt/tmux/share/man:`manpath -q`
 
 # less color option
 export LESS='-R'
