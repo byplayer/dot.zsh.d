@@ -1,2 +1,2 @@
-export GREP_OPTIONS='--color=always'
+alias grep="grep --color=always"
 export GREP_COLOR='01;31'
