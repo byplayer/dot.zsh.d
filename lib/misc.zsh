@@ -47,7 +47,7 @@ case ${OSTYPE} in
     ;;
 esac
 
-alias cd_gtop="cd `git top`"
+alias cd_gtop='cd `git top`'
 
 # tmux
 alias tmux="tmux -2"
