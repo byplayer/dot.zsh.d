@@ -2,7 +2,8 @@ if [ -f $HOME/.jdk_default.sh ]; then
   source $HOME/.jdk_default.sh
 fi
 
-[[ -s "$HOME/.gvm/bin/gvm-init.sh" ]] && source "$HOME/.gvm/bin/gvm-init.sh"
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -f "${SDKMAN_DIR}/bin/sdkman-init.sh" ]] && source "${SDKMAN_DIR}/bin/sdkman-init.sh"
 
 # fix problem for zaw-src-cdr
 unsetopt sh_word_split
