@@ -5,3 +5,6 @@ bindkey '^r' zaw-history
 bindkey '^gc' zaw-cdr
 
 export ZAW_EDITOR='emacsclient -n'
+
+zstyle ':filter-select:highlight' matched fg=yellow,standout
+zstyle ':filter-select:highlight' selected fg=white,standout
