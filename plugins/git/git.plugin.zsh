@@ -1,5 +1,5 @@
 # git env
-export PATH=/opt/git/bin:~/.git-extensions/bin:$PATH
+export PATH=/opt/git/bin:/opt/git/contrib/diff-highlight:~/.git-extensions/bin:$PATH
 export MANPATH=/opt/git/share/man:`manpath -q`
 alias g="git"
 
