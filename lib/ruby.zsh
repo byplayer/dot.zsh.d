@@ -5,7 +5,7 @@ fi
 export PATH=${RBENV_ROOT}/bin:$PATH
 eval "$(rbenv init -)"
 
-export PATH=$HOME/.ruby_tool/vendor/bin:$PATH
+export PATH=$PATH:$HOME/.ruby_tool/vendor/bin
 
 # ruby aliases
 alias r="rails"
