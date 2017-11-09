@@ -38,8 +38,9 @@ export LESS='-R'
 # alias 設定
 case ${OSTYPE} in
   darwin*)
-    export PATH=`brew --prefix coreutils`/libexec/gnubin:$PATH
-    export MANPATH=`brew --prefix coreutils`/libexec/gnuman:$PATH
+    export PATH=/opt/local/bin:/opt/local/sbin:$PATH
+    export MANPATH=/opt/local/share/man:$MANPATH
+    export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
     alias ls="gls -CF --color"
     ;;
   *)
