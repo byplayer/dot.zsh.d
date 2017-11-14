@@ -145,3 +145,19 @@ SPROMPT="${PROMPT_CL_PREFIX}%r is correct? [n,y,a,e]:${PROMPT_CL_SUFIX} "
 RPROMPT_BASE="%F{${RPROMPT_FG_COLOR}}[%(4~,%-1~/.../%2~,%~)%f]"
 RPROMPT=${RPROMPT_BASE}
 
+# set terminal title including current directory
+case "${TERM}" in
+# for emacs tramp setting
+dumb | emacs)
+    PROMPT="%n@%~%(!.#.$)"
+    RPROMPT=""
+    PS1='%(?..[%?])%!:%~%# '
+    # for tramp to not hang, need the following. cf:
+    # http://www.emacswiki.org/emacs/TrampMode
+    unsetopt zle
+    unsetopt prompt_cr
+    unsetopt prompt_subst
+    unfunction precmd
+    unfunction preexec
+    ;;
+esac
