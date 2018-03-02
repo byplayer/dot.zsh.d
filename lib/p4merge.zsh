@@ -1,1 +1,1 @@
-export PATH=${PATH}:/usr/local/p4v/bin
+export PATH=${PATH}:/opt/p4v/bin
