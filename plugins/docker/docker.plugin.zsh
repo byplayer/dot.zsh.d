@@ -4,6 +4,10 @@ alias dc="docker-compose"
 
 docker() {
   case $1 in
+    i.l.a)
+      shift
+      command docker image ls --all "$@"
+      ;;
     i.l)
       shift
       command docker image ls "$@"
@@ -19,6 +23,10 @@ docker() {
     i)
       shift
       command docker image "$@"
+      ;;
+    c.l.a)
+      shift
+      command docker container ls --all "$@"
       ;;
     c.l)
       shift
