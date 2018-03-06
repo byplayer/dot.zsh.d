@@ -58,6 +58,3 @@ fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
 
 # add path private scripts
 export PATH=~/.bin:$PATH
-
-# salias
-source <(salias __init__)
