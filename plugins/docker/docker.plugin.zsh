@@ -1,5 +1,6 @@
 # docker
 alias d="docker"
+alias dc="docker-compose"
 
 docker() {
   case $1 in
