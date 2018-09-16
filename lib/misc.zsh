@@ -19,10 +19,6 @@ bindkey -e
 # freemind
 export PATH=/usr/local/freemind:$PATH
 
-# ctags 環境設定
-export PATH=/usr/local/ctags/bin:$PATH
-export MANPATH=/usr/local/ctags/share/man:`manpath -q`
-
 # mysql
 export PATH=/usr/local/mysql/bin:$PATH
 export MANPATH=/usr/local/mysql/man:`manpath -q`
