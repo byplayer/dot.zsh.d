@@ -58,3 +58,7 @@ export PATH=~/.bin:$PATH
 # here isn't good place, but I doesn't work in .xsessionrc
 # so I added here
 /opt/setlayout/bin/setlayout 0 2 2 0
+
+function ymd_date() {
+  date +%Y%m%d
+}
