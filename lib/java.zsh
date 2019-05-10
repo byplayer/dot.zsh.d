@@ -7,5 +7,3 @@ export SDKMAN_DIR="$HOME/.sdkman"
 
 # fix problem for zaw-src-cdr
 unsetopt sh_word_split
-
-export PATH=$PATH:/opt/google-java-format/bin
