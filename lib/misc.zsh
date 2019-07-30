@@ -58,3 +58,6 @@ export PATH=~/.bin:$PATH
 function ymd_date() {
   date +%Y%m%d
 }
+
+# use custom emacs
+export PATH=/opt/emacs/bin:${PATH}
