@@ -17,7 +17,7 @@ setopt correct
 bindkey -e
 
 # freemind
-export PATH=/usr/local/freemind:$PATH
+export PATH=/opt/freemind:$PATH
 
 # mysql
 export PATH=/usr/local/mysql/bin:$PATH
