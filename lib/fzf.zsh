@@ -3,7 +3,11 @@ export MANPATH=/opt/fzf/man:`manpath -q`
 
 export FZF_TMUX_HEIGHT=60
 
-# to support ** completion
+# to support ** completion and kill completion
+#
+#   kill <TAB>
+#   cd ../**<TAB>
+#   emacs **<TAB>
 source /opt/fzf/shell/completion.zsh
 
 export FZF_DEFAULT_OPTS='--color=dark
