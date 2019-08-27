@@ -1,7 +1,6 @@
 bindkey '^gz' zaw
 bindkey '^gb' zaw-git-recent-all-branches
 bindkey '^gs' zaw-git-status
-bindkey '^r' zaw-history
 
 export ZAW_EDITOR='emacsclient -n'
 
