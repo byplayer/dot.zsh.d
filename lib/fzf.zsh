@@ -11,7 +11,7 @@ export FZF_TMUX_HEIGHT=60
 source /opt/fzf/shell/completion.zsh
 
 export FZF_DEFAULT_OPTS='--color=dark
---border
+--border --ansi
 --color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,hl+:#d858fe
 --color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:150,header:#61afef
 --reverse --select-1 --exit-0 --multi'
@@ -83,7 +83,7 @@ __fzf_generic_path_completion() {
       leftover=${leftover/#\/}
       [ -z "$dir" ] && dir='.'
       [ "$dir" != "/" ] && dir="${dir/%\//}"
-      matches=$(eval "$compgen $(printf %q "$dir")" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_COMPLETION_OPTS" ${=fzf} ${=fzf_opts} --preview 'if [ -d {} ] ; then ; echo {} is directory ; tree -C {} | head -200; elif [ $(file --mime {}) ] ; then echo {} is binary ; else chroma {} 2> /dev/null | head -500 ; fi' -q "$leftover" | while read item; do
+      matches=$(eval "$compgen $(printf %q "$dir")" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_COMPLETION_OPTS" ${=fzf} ${=fzf_opts} --preview 'if [ -d {} ] ; then ; echo {} is directory ; tree -C {} | head -200; elif [ $(file --mime {} 2> /dev/null > /dev/null) ] ; then echo {} is binary ; else highlight -l -s olive -O truecolor --force {} | head -500 ; fi' -q "$leftover" | while read item; do
         echo -n "${(q)item}$suffix "
       done)
       matches=${matches% }
