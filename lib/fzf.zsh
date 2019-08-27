@@ -83,7 +83,7 @@ __fzf_generic_path_completion() {
       leftover=${leftover/#\/}
       [ -z "$dir" ] && dir='.'
       [ "$dir" != "/" ] && dir="${dir/%\//}"
-      matches=$(eval "$compgen $(printf %q "$dir")" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_COMPLETION_OPTS" ${=fzf} ${=fzf_opts} --preview 'if [ -d {} ] ; then ; echo {} is directory; elif [ $(file --mime {}) ] ; then echo {} is binary ; else chroma {} 2> /dev/null | head -500 ; fi' -q "$leftover" | while read item; do
+      matches=$(eval "$compgen $(printf %q "$dir")" | FZF_DEFAULT_OPTS="--height ${FZF_TMUX_HEIGHT:-40%} --reverse $FZF_DEFAULT_OPTS $FZF_COMPLETION_OPTS" ${=fzf} ${=fzf_opts} --preview 'if [ -d {} ] ; then ; echo {} is directory ; tree -C {} | head -200; elif [ $(file --mime {}) ] ; then echo {} is binary ; else chroma {} 2> /dev/null | head -500 ; fi' -q "$leftover" | while read item; do
         echo -n "${(q)item}$suffix "
       done)
       matches=${matches% }
