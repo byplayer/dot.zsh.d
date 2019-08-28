@@ -14,7 +14,7 @@ export FZF_DEFAULT_OPTS='--color=dark
 --border --ansi
 --color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,hl+:#d858fe
 --color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:150,header:#61afef
---reverse --select-1 --exit-0 --multi'
+--reverse --select-1 --exit-0'
 
 __fzf_is_binary() {
   a=$(file --mime "$1" | grep "charset=binary")
