@@ -133,7 +133,7 @@ function fzf-ag () {
     echo 'Usage: fzf-ag PATTERN'
     return 0
   fi
-  result=`ag $1 | fzf --preview 'highlight -l -s olive -O truecolor --force $(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file.awk) | tail +$(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file-line.awk)'`
+  result=`ag $1 | fzf --preview-window=down:50% --preview 'highlight -l -s olive -O truecolor --force $(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file.awk) | tail +$(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file-line.awk)'`
   line=`echo "$result" | awk -F ':' '{print $2}'`
   file=`echo "$result" | awk -F ':' '{print $1}'`
   if [ -n "$file" ]; then
