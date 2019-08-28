@@ -126,3 +126,19 @@ fzf-git-log-all ()
 
 alias glg=fzf-git-log
 alias glga=fzf-git-log
+
+# ag + fzf
+function fzf-ag () {
+  if [ -z "$1" ]; then
+    echo 'Usage: fzf-ag PATTERN'
+    return 0
+  fi
+  result=`ag $1 | fzf --preview 'highlight -l -s olive -O truecolor --force $(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file.awk) | tail +$(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file-line.awk)'`
+  line=`echo "$result" | awk -F ':' '{print $2}'`
+  file=`echo "$result" | awk -F ':' '{print $1}'`
+  if [ -n "$file" ]; then
+    echo emacsclient -n +$line $file
+    emacsclient -n +$line $file
+  fi
+}
+alias fag=fzf-ag
