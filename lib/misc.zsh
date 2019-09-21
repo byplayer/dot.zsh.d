@@ -28,9 +28,6 @@ export LD_LIBRARY_PATH=/usr/local/mysql/lib/mysql:$LD_LIBRARY_PATH
 export PATH=/opt/tmux/bin:$PATH
 export MANPATH=/opt/tmux/share/man:`manpath -q`
 
-# emojify
-export PATH=/opt/emojify:$PATH
-
 # less color option
 export LESS='-R'
 
