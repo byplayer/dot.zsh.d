@@ -11,6 +11,9 @@ for plugin ($ZSH_EXT_BASE/plugins/*) {
   fi
 }
 
+# add local_tools at the top of PATH
+export PATH=/opt/local_tools:$PATH
+
 autoload -U compinit
 compinit -i
 
