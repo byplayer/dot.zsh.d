@@ -1,5 +1,6 @@
 export PATH=/opt/unco/bin:$PATH
 export MANPATH=/opt/unco/share/man:`manpath -q`
+fpath=($ZSH_EXT_BASE/plugins/unco $fpath)
 
 # add hook to use unco record --
 # If I use alias git="unco record -- git"
