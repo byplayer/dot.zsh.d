@@ -1,8 +1,8 @@
 #rbenv
 if [ -d /opt/rbenv ]; then
   export RBENV_ROOT=/opt/rbenv
+  export PATH=${RBENV_ROOT}/bin:$PATH
 fi
-export PATH=${RBENV_ROOT}/bin:$PATH
 eval "$(rbenv init -)"
 
 export PATH=$PATH:$HOME/.ruby_tool/vendor/bin
