@@ -36,12 +36,11 @@ case ${OSTYPE} in
   darwin*)
     export PATH=/usr/local/opt/coreutils/libexec/gnubin:$PATH
     export MANPATH=/usr/local/opt/coreutils/libexec/gnuman:$MANPATH
+    export PATH=/usr/local/opt/findutils/libexec/gnubin:$PATH
     export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
     ;;
-  *)
-    alias ls="ls -CF --color"
-    ;;
 esac
+alias ls="ls -CF --color"
 
 alias cd_gtop='cd `git top`'
 
