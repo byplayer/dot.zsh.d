@@ -8,7 +8,15 @@ export FZF_TMUX_HEIGHT=60
 #   kill <TAB>
 #   cd ../**<TAB>
 #   emacs **<TAB>
-source /opt/fzf/shell/completion.zsh
+if [ -f /opt/fzf/shell/completion.zsh ]; then
+  source /opt/fzf/shell/completion.zsh
+fi
+
+case ${OSTYPE} in
+  darwin*)
+    source $(brew ls fzf | grep --color=no shell | grep --color=no completion.zsh)
+  ;;
+esac
 
 export FZF_DEFAULT_OPTS='--color=dark
 --border --ansi
