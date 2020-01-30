@@ -5,7 +5,7 @@ if [ -d /opt/rbenv ]; then
 fi
 eval "$(rbenv init -)"
 
-export PATH=$PATH:$HOME/.ruby_tool/vendor/bin
+export PATH=$HOME/.ruby_tool/bin:$PATH
 
 # ruby aliases
 alias r="rails"
