@@ -16,6 +16,14 @@ function ecn {
     eval "emacsclient -n $args"
 }
 
-EDITOR=/usr/bin/emacsclient
+case ${OSTYPE} in
+  darwin*)
+    EDITOR=/usr/local/bin/emacsclient
+    ;;
+  *)
+    EDITOR=/usr/bin/emacsclient
+    ;;
+esac
+
 export EDITOR
 export ALTERNATE_EDITOR="emacs"
