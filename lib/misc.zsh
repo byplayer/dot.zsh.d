@@ -38,6 +38,7 @@ case ${OSTYPE} in
     export MANPATH=/usr/local/opt/coreutils/libexec/gnuman:$MANPATH
     export PATH=/usr/local/opt/findutils/libexec/gnubin:$PATH
     export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
+    export PATH=/usr/local/sbin:$PATH
     ;;
 esac
 alias ls="ls -CF --color"
