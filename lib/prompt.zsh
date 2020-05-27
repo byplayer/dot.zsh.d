@@ -63,6 +63,10 @@ function _prompt_git_not_pushed()
 
 function _git_stat_update {
   if [ $(_prompt_is_in_git) = "true" ] ; then
+    if [ ! -d {TMPPREFIX} ]; then
+      mkdir -p ${TMPPREFIX}
+    fi
+
     echo $(pwd) > ${RPROMPT_WORK}
     echo -n "%F{${RPROMPT_FG_COLOR}}[" >> ${RPROMPT_WORK}
     echo -n "%F{${VC_BRANCH_FG}}$(_prompt_git_branch_name)" >> ${RPROMPT_WORK}
