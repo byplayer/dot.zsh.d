@@ -23,7 +23,7 @@ case ${OSTYPE} in
     ;;
   *)
     alias emacs='XMODFIERS="@im=none" emacs 2>/dev/null'
-    EDITOR=/usr/bin/emacsclient
+    EDITOR=emacsclient
     ;;
 esac
 
