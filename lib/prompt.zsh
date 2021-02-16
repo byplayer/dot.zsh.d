@@ -110,8 +110,8 @@ add-zsh-hook precmd _async_git_stat_update
 
 
 # prompt
-PROMPT_FG_COLOR=white
-RPROMPT_FG_COLOR=white
+PROMPT_FG_COLOR=black
+RPROMPT_FG_COLOR=black
 
 # git status
 # untracked yellow ●
@@ -129,7 +129,7 @@ case ${UID} in
   PROMPT_FG_COLOR=red
   ;;
 *)
-  PROMPT_FG_COLOR=white
+  PROMPT_FG_COLOR=black
   ;;
 esac
 

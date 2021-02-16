@@ -18,11 +18,11 @@ case ${OSTYPE} in
   ;;
 esac
 
-export FZF_DEFAULT_OPTS='--color=dark
+export FZF_DEFAULT_OPTS='
 --border --ansi
---color=fg:-1,bg:-1,hl:#c678dd,fg+:#ffffff,hl+:#d858fe
---color=info:#98c379,prompt:#61afef,pointer:#be5046,marker:#e5c07b,spinner:150,header:#61afef
 --reverse --exit-0'
+
+export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --color=fg:#000000,bg:#ffffff,hl:#177899 --color=fg+:#ffffff,bg+:#008cd7,hl+:#adebff --color=info:#afaf87,prompt:#cc0058,pointer:#d5abff --color=marker:#77e304,spinner:#a64cff,header:#87afaf'
 
 __fzf_is_binary() {
   a=$(file --mime "$1" | grep "charset=binary")
@@ -141,7 +141,7 @@ function fzf-ag () {
     echo 'Usage: fzf-ag PATTERN'
     return 0
   fi
-  result=`ag $1 | fzf --preview-window=down:50% --preview 'highlight -l -s olive -O truecolor --force $(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file.awk) | tail -n +$(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file-line.awk)'`
+  result=`ag $1 | fzf --preview-window=down:50% --preview 'highlight -l -s github -O truecolor --force $(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file.awk) | tail -n +$(echo {} | awk -F: -f ~/.zsh.d/lib/fzf-ag-file-line.awk)'`
   line=`echo "$result" | awk -F ':' '{print $2}'`
   file=`echo "$result" | awk -F ':' '{print $1}'`
   if [ -n "$file" ]; then
