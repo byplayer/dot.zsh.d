@@ -41,6 +41,7 @@ case ${OSTYPE} in
     export PATH=/usr/local/sbin:$PATH
     export PATH=/usr/local/opt/qt/bin:$PATH
     export TERM=xterm-256color
+    export PATH=/usr/local/opt/openjdk/bin:$PATH
     ;;
 esac
 alias ls="ls -CF --color"
