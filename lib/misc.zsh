@@ -31,6 +31,9 @@ export MANPATH=/opt/tmux/share/man:`manpath -q`
 # less color option
 export LESS='-R'
 
+# use 256 color in terminal
+export TERM=xterm-256color
+
 # alias 設定
 case ${OSTYPE} in
   darwin*)
@@ -40,7 +43,6 @@ case ${OSTYPE} in
     export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
     export PATH=/usr/local/sbin:$PATH
     export PATH=/usr/local/opt/qt/bin:$PATH
-    export TERM=xterm-256color
     export PATH=/usr/local/opt/openjdk/bin:$PATH
     ;;
 esac
