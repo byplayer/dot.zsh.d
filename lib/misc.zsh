@@ -43,7 +43,6 @@ case ${OSTYPE} in
     export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
     export PATH=/usr/local/sbin:$PATH
     export PATH=/usr/local/opt/qt/bin:$PATH
-    export PATH=/usr/local/opt/openjdk/bin:$PATH
     ;;
 esac
 alias ls="ls -CF --color"
