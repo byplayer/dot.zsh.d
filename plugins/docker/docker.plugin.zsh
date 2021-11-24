@@ -50,3 +50,7 @@ docker() {
 }
 
 dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/"| sed "s/['|\']//g" | sort;}
+
+if [ -d /opt/docker-compose/bin ] ; then
+  export PATH=/opt/docker-compose/bin:$PATH
+fi
