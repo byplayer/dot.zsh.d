@@ -145,8 +145,8 @@ function fzf-ag () {
   line=`echo "$result" | awk -F ':' '{print $2}'`
   file=`echo "$result" | awk -F ':' '{print $1}'`
   if [ -n "$file" ]; then
-    echo emacsclient -n +$line $file
-    emacsclient -n +$line $file
+    echo code -g ${file}:${line}
+    code -g ${file}:${line}
   fi
 }
 alias fag=fzf-ag

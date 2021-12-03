@@ -2,7 +2,7 @@ bindkey '^gz' zaw
 bindkey '^gb' zaw-git-recent-all-branches
 bindkey '^gs' zaw-git-status
 
-export ZAW_EDITOR='emacsclient -n'
+export ZAW_EDITOR='code'
 
 # use default theme
 # zstyle ':filter-select:highlight' matched fg=yellow,standout

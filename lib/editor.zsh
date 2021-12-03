@@ -23,7 +23,7 @@ case ${OSTYPE} in
     ;;
   *)
     alias emacs='XMODFIERS="@im=none" emacs 2>/dev/null'
-    export EDITOR=emacsclient
+    export EDITOR="code --wait"
     ;;
 esac
 
