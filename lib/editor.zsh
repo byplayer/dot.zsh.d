@@ -18,14 +18,13 @@ function ecn {
 
 case ${OSTYPE} in
   darwin*)
-    EDITOR=/usr/local/bin/emacsclient
+    export EDITOR"=code --wait"
     alias emacs='open -a /Applications/Emacs.app'
     ;;
   *)
     alias emacs='XMODFIERS="@im=none" emacs 2>/dev/null'
-    EDITOR=emacsclient
+    export EDITOR=emacsclient
     ;;
 esac
 
-export EDITOR
-export ALTERNATE_EDITOR="emacs"
+export ALTERNATE_EDITOR="code"
