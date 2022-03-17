@@ -1,10 +1,4 @@
-#rbenv
-if [ -d /opt/rbenv ]; then
-    export RBENV_ROOT=/opt/rbenv
-    export PATH=${RBENV_ROOT}/bin:$PATH
-fi
-eval "$(rbenv init -)"
-
+#ruby_tool
 export PATH=/opt/ruby_tool/bin:$PATH
 
 # ruby aliases

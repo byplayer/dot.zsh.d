@@ -54,6 +54,7 @@ alias tmux="tmux -2"
 
 # zsh-completions
 fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
+fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # add path private scripts
 export PATH=~/.bin:$PATH
