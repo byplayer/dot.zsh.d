@@ -12,4 +12,3 @@ case ${OSTYPE} in
 esac
 
 zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-
