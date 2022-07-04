@@ -33,16 +33,17 @@ export LESS='-R'
 
 # use 256 color in terminal
 export TERM=xterm-256color
+# zsh-completions
+fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
+fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # alias 設定
 case ${OSTYPE} in
   darwin*)
-    export PATH=/usr/local/opt/coreutils/libexec/gnubin:$PATH
-    export MANPATH=/usr/local/opt/coreutils/libexec/gnuman:$MANPATH
-    export PATH=/usr/local/opt/findutils/libexec/gnubin:$PATH
-    export PATH=/opt/local/share/git/contrib/diff-highlight:$PATH
-    export PATH=/usr/local/sbin:$PATH
-    export PATH=/usr/local/opt/qt/bin:$PATH
+    export PATH=$(brew --prefix coreutils)/libexec/gnubin/:$PATH
+    export MANPATH=$(brew --prefix coreutils)/libexec/gnuman:$MANPATH
+    export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
+    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
     ;;
 esac
 alias ls="ls -CF --color"
@@ -51,10 +52,6 @@ alias cd_gtop='cd `git top`'
 
 # tmux
 alias tmux="tmux -2"
-
-# zsh-completions
-fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
-fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # add path private scripts
 export PATH=~/.bin:$PATH
