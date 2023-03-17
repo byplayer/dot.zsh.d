@@ -1,5 +1,6 @@
 bindkey '^gz' zaw
 bindkey '^gb' zaw-git-recent-all-branches
+bindkey '^gl' zaw-src-git-recent-branches
 bindkey '^gs' zaw-git-status
 
 export ZAW_EDITOR='code'
