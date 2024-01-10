@@ -57,7 +57,7 @@ EZA_COLORS+=":*.rb=38;5;124:*.md=38;5;52"
 EZA_COLORS+=":*.rs=38;5;88"
 export EZA_COLORS
 
-alias ls="eza --icons --git"
+alias ls="eza -F --icons --git"
 
 alias cd_gtop='cd `git top`'
 
