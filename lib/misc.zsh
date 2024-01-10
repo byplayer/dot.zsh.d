@@ -47,7 +47,16 @@ darwin*)
   ;;
 esac
 
-export EZA_COLORS="uu=38;5;124:ur=38;5;124:uw=38;5;160:*.rb=38;5;124:*.md=38;5;52"
+EZA_COLORS="uu=38;5;124:ux=38;5;30:ur=38;5;124:uw=38;5;160"
+EZA_COLORS+=":nk=38;5;31"
+EZA_COLORS+=":ex=38;5;30"
+EZA_COLORS+=":sc=38;5;166"
+EZA_COLORS+=":bu=38;5;3"
+EZA_COLORS+=":cr=38;5;28"
+EZA_COLORS+=":*.rb=38;5;124:*.md=38;5;52"
+EZA_COLORS+=":*.rs=38;5;88"
+export EZA_COLORS
+
 alias ls="eza --icons --git"
 
 alias cd_gtop='cd `git top`'
