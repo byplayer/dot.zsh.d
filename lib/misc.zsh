@@ -21,12 +21,12 @@ export PATH=/opt/freemind:$PATH
 
 # mysql
 export PATH=/usr/local/mysql/bin:$PATH
-export MANPATH=/usr/local/mysql/man:`manpath -q`
+export MANPATH=/usr/local/mysql/man:$(manpath -q)
 export LD_LIBRARY_PATH=/usr/local/mysql/lib/mysql:$LD_LIBRARY_PATH
 
 # tmux
 export PATH=/opt/tmux/bin:$PATH
-export MANPATH=/opt/tmux/share/man:`manpath -q`
+export MANPATH=/opt/tmux/share/man:$(manpath -q)
 
 # less color option
 export LESS='-R'
@@ -39,14 +39,16 @@ fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # alias 設定
 case ${OSTYPE} in
-  darwin*)
-    export PATH=$(brew --prefix coreutils)/libexec/gnubin/:$PATH
-    export MANPATH=$(brew --prefix coreutils)/libexec/gnuman:$MANPATH
-    export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
-    fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-    ;;
+darwin*)
+  export PATH=$(brew --prefix coreutils)/libexec/gnubin/:$PATH
+  export MANPATH=$(brew --prefix coreutils)/libexec/gnuman:$MANPATH
+  export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
+  fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+  ;;
 esac
-alias ls="ls -CF --color"
+
+export EZA_COLORS="uu=38;5;124:ur=38;5;124:*.rb=38;5;124:*.md=38;5;52"
+alias ls="eza --icons --git"
 
 alias cd_gtop='cd `git top`'
 
