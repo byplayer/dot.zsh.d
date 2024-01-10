@@ -47,7 +47,7 @@ darwin*)
   ;;
 esac
 
-EZA_COLORS="uu=38;5;124:ux=38;5;30:ur=38;5;124:uw=38;5;160"
+EZA_COLORS="uu=38;5;124:ux=38;5;30:ue=38;5;30:ur=38;5;124:uw=38;5;160"
 EZA_COLORS+=":nk=38;5;31"
 EZA_COLORS+=":ex=38;5;30"
 EZA_COLORS+=":sc=38;5;166"
