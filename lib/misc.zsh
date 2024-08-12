@@ -59,6 +59,7 @@ EZA_COLORS+=":cr=38;5;28"
 EZA_COLORS+=":*.rb=38;5;124:*.md=38;5;52"
 EZA_COLORS+=":*.rs=38;5;88"
 EZA_COLORS+=":*.bk=38;5;245"
+EZA_COLORS+=":*.tmp=38;5;245"
 export EZA_COLORS
 
 alias ls="eza -g --icons --git"
