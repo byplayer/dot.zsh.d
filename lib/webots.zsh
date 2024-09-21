@@ -1,1 +1,1 @@
-export WEBOTS_HOME=/Applications/Webots.app/Contents
+export WEBOTS_HOME=/Applications/Webots.app
