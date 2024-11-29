@@ -1,5 +1,8 @@
 export ZSH_EXT_BASE=$HOME/.zsh.d
 
+autoload -U compinit
+compinit -i
+
 # TIP: Add files you don't want in git to .gitignore
 for config_file ($ZSH_EXT_BASE/lib/*.zsh) source $config_file
 
@@ -13,7 +16,4 @@ for plugin ($ZSH_EXT_BASE/plugins/*) {
 
 # add local_tools at the top of PATH
 export PATH=/opt/local_tools:$PATH
-
-autoload -U compinit
-compinit -i
 
