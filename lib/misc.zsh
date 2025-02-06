@@ -33,9 +33,6 @@ export LESS='-R'
 
 # use 256 color in terminal
 export TERM=xterm-256color
-# zsh-completions
-fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
-fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # alias 設定
 case ${OSTYPE} in
@@ -45,9 +42,12 @@ darwin*)
   export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix make)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix gcc)/bin:$PATH
-  fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
   ;;
 esac
+
+# zsh-completions
+fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
+fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 EZA_COLORS="uu=38;5;124:ux=38;5;30:ue=38;5;30:ur=38;5;124:uw=38;5;160"
 EZA_COLORS+=":gu=38;5;172"
