@@ -34,7 +34,7 @@ export LESS='-R'
 # use 256 color in terminal
 export TERM=xterm-256color
 # zsh-completions
-# fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
+fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
 fpath=(/usr/local/share/zsh/site-functions $fpath)
 
 # alias 設定
