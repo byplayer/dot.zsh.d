@@ -4,3 +4,6 @@
 [submodule "plugins/zaw"]
 	path = plugins/zaw
 	url = https://github.com/byplayer/zaw.git
+[submodule "plugins/zsh-syntax-highlighting"]
+	path = plugins/zsh-syntax-highlighting
+	url = https://github.com/zsh-users/zsh-syntax-highlighting.git

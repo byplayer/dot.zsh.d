@@ -50,6 +50,9 @@ esac
 fpath=(~/.zsh.d/plugins/zsh-completions/src $fpath)
 fpath=(/usr/local/share/zsh/site-functions $fpath)
 
+# syntax highliting
+source $HOME/.zsh.d/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
 EZA_COLORS="uu=38;5;124:ux=38;5;30:ue=38;5;30:ur=38;5;124:uw=38;5;160"
 EZA_COLORS+=":gu=38;5;172"
 EZA_COLORS+=":nk=38;5;31"
