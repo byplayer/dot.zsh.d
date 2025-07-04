@@ -42,6 +42,7 @@ darwin*)
   export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix make)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix gcc)/bin:$PATH
+  export PATH=$(brew --prefix mysql@8.0)/bin:$PATH
   fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
   ;;
 esac
