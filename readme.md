@@ -2,9 +2,13 @@
 
 - zaw
   - ^gz zaw
-  - ^gb zaw-git-recent-all-branches
   - ^r zaw-history
   - ^gc zaw-cdr
+  - git
+    - ^gr zaw-git-recent-all-branches
+    - ^gb zaw-git-recent-branches
+    - ^gs zaw-git-status-edit-src
+    - ^gf zaw-git-files
 
 # ansi 256 color list
 
