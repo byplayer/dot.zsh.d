@@ -99,7 +99,7 @@ function TRAPUSR2 {
     if [[ "$lines[1]" = "$(pwd)" ]] ; then
       RPROMPT=$lines[2]
     fi
-    rm -f ${RPROMPT_WORK}
+    command rm -f ${RPROMPT_WORK}
 
     # Force zsh to redisplay the prompt.
     zle && zle reset-prompt
