@@ -1,2 +1,2 @@
 alias grep="grep --color=always"
-export GREP_COLOR='01;31'
+export GREP_COLORS='mt=01;31'
