@@ -40,6 +40,7 @@ darwin*)
   export PATH=$(brew --prefix coreutils)/libexec/gnubin/:$PATH
   export MANPATH=$(brew --prefix coreutils)/libexec/gnuman:$MANPATH
   export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
+  export PATH=$(brew --prefix grep)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix make)/libexec/gnubin:$PATH
   export PATH=$(brew --prefix gcc)/bin:$PATH
   export PATH=$(brew --prefix mysql@8.0)/bin:$PATH
