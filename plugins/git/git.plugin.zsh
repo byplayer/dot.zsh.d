@@ -9,4 +9,5 @@ case ${OSTYPE} in
     ;;
 esac
 
+export PATH=$PATH:$ZSH_EXT_BASE/plugins/git/bin
 fpath=($ZSH_EXT_BASE/plugins/git $fpath)

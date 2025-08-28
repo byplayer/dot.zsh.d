@@ -1,0 +1,52 @@
+#!/bin/bash
+
+set -ue
+
+# Check if command line argument is provided
+if [ $# -eq 0 ]; then
+    echo "Usage: git wtadd <branch-name> [commit-ish]" >&2
+    echo "Error: Branch name argument is required" >&2
+    exit 1
+fi
+
+# Store the first argument as BRANCH_NAME
+BRANCH_NAME="$1"
+
+# Store the second argument as COMMIT_ISH (optional)
+COMMIT_ISH="${2:-}"
+
+# Get repository name from git remote URL
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+
+if [[ -z "$REMOTE_URL" ]]; then
+    echo "Error: Could not get origin remote URL" >&2
+    exit 1
+fi
+
+# Extract repository name from URL
+# Handle both SSH (git@github.com:user/repo.git) and HTTPS (https://github.com/user/repo.git) formats
+if [[ "$REMOTE_URL" =~ ^git@[^:]+:([^/]+)/([^/]+)(\.git)?$ ]]; then
+    # SSH format: git@github.com:user/repo.git
+    REPO_NAME="${BASH_REMATCH[2]%.git}"
+elif [[ "$REMOTE_URL" =~ ^https?://[^/]+/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+    # HTTPS format: https://github.com/user/repo.git or https://github.com/user/repo
+    REPO_NAME="${BASH_REMATCH[2]%.git}"
+else
+    echo "Error: Could not parse repository name from remote URL: $REMOTE_URL" >&2
+    exit 1
+fi
+
+# Replace forward slashes with hyphens for directory name
+DIR_BRANCH_NAME="${BRANCH_NAME//\//-}"
+
+# Check if the branch exists locally and execute the appropriate git worktree add command
+if [[ -n "$COMMIT_ISH" ]]; then
+    # Commit-ish is provided, create new branch from the specified commit-ish
+    git worktree add --track "../${REPO_NAME}-${DIR_BRANCH_NAME}" -b "${BRANCH_NAME}" "$COMMIT_ISH"
+elif git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
+    # Branch exists locally, use existing branch
+    git worktree add "../${REPO_NAME}-${DIR_BRANCH_NAME}" "${BRANCH_NAME}"
+else
+    # Branch doesn't exist locally, create new branch
+    git worktree add "../${REPO_NAME}-${DIR_BRANCH_NAME}" -b "${BRANCH_NAME}"
+fi
