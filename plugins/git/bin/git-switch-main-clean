@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -eu
+
+source "$(dirname "$0")/common.bash"
+
+# Check for uncommitted or untracked files
+if ! git diff-index --quiet HEAD -- || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "❌ Error: You have uncommitted changes or untracked files."
+    echo "Please commit or stash your changes before running this command."
+    git status --short
+    exit 1
+fi
+
+# 1. memorize current git branch name
+current_branch=$(git branch --show-current)
+
+# 2. If current branch name is `main` stop command
+if [ "$current_branch" = "main" ]; then
+    echo "Already on main branch. Stopping."
+    exit 0
+fi
+
+echo "Current branch: $current_branch"
+echo "Switching to main branch..."
+
+# 3. switch main branch
+git checkout main
+
+# 4. run `git remote prune origin`
+echo "Pruning remote branches..."
+git remote prune origin
+
+# 5. run `git pull`
+echo "Pulling latest changes..."
+git pull
+
+# 6. delete memorized branch without force delete option
+echo "Checking if branch $current_branch is merged into main..."
+if ! git branch --merged main | grep -q "^\s*$current_branch$"; then
+    echo "❌ Error: Branch '$current_branch' is not merged into main."
+    echo "Please merge the branch into main before running this command."
+    exit 1
+fi
+
+echo "Deleting branch: $current_branch"
+git branch -d "$current_branch"
+
+echo "✅ Successfully switched to main, pulled changes, and deleted $current_branch"
