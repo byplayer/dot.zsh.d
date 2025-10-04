@@ -16,3 +16,11 @@ for plugin ($ZSH_EXT_BASE/plugins/*) {
 
 # add local_tools at the top of PATH
 export PATH=/opt/local_tools:$PATH
+
+if [ -d $HOME/.local/bin ]; then
+  export PATH=$HOME/.local/bin:$PATH
+fi
+
+if [ -d $HOME/.local/share/zsh/site-functions ]; then
+  fpath=($HOME/.local/share/zsh/site-functions $fpath)
+fi
