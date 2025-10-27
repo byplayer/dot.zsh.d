@@ -1,6 +1,6 @@
 bindkey '^gz' zaw
-bindkey '^gr' zaw-git-recent-all-branches
-bindkey '^gb' zaw-git-recent-branches
+# bindkey '^gr' zaw-git-recent-all-branches
+# bindkey '^gb' zaw-git-recent-branches
 bindkey '^gs' zaw-git-status-edit
 bindkey '^gf' zaw-git-files
 bindkey '^gw' zaw-git-worktree
