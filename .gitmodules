@@ -10,3 +10,6 @@
 [submodule "plugins/fzf-tab"]
 	path = plugins/fzf-tab
 	url = https://github.com/byplayer/fzf-tab.git
+[submodule "plugins/fzf-action"]
+	path = plugins/fzf-action
+	url = https://github.com/byplayer/fzf-action.git
