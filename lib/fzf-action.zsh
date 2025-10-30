@@ -160,8 +160,7 @@ function _fzf-validate-worktree() {
     local current_worktree="$(git rev-parse --show-toplevel 2>/dev/null)"
 
     if [[ "$worktree_path" == "$current_worktree" ]]; then
-         # BUFFER="echo 'Error: Cannot delete current worktree: $worktree_path'"
-         print "Error: Cannot delete current worktree: $worktree_path"
+        print "Error: Cannot delete current worktree: $worktree_path"
         return 1
     fi
 
