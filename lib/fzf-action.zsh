@@ -3,6 +3,7 @@ export FZF_ACTION_EDITOR='code'
 bindkey '^gr' fzf-action-git-branches-all
 bindkey '^gb' fzf-action-git-branches
 bindkey '^gf' fzf-action-git-files
+bindkey '^gs' fzf-action-git-status-edit-mode
 bindkey '^gw' fzf-action-git-worktree
 
 # _fzf-format-worktree-entry - Format a worktree entry for display
