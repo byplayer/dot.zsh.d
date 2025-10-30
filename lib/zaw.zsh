@@ -3,7 +3,7 @@ bindkey '^gz' zaw
 # bindkey '^gb' zaw-git-recent-branches
 bindkey '^gs' zaw-git-status-edit
 # bindkey '^gf' zaw-git-files
-bindkey '^gw' zaw-git-worktree
+# bindkey '^gw' zaw-git-worktree
 
 export ZAW_EDITOR='code'
 
