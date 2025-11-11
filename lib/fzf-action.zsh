@@ -5,6 +5,7 @@ bindkey '^gb' fzf-action-git-branches
 bindkey '^gf' fzf-action-git-files
 bindkey '^gs' fzf-action-git-status-edit-mode
 bindkey '^gw' fzf-action-git-worktree
+bindkey '^r' fzf-action-command-history
 
 # _fzf-format-worktree-entry - Format a worktree entry for display
 # Arguments:
