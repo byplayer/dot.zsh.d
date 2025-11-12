@@ -7,6 +7,8 @@ bindkey '^gs' fzf-action-git-status-edit-mode
 bindkey '^gw' fzf-action-git-worktree
 bindkey '^r' fzf-action-command-history
 
+export FZF_ACTION_HISTORY_LIMIT=30000
+
 # _fzf-format-worktree-entry - Format a worktree entry for display
 # Arguments:
 #   $1 - path: Full path to the worktree
