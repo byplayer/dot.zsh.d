@@ -14,6 +14,8 @@ for plugin ($ZSH_EXT_BASE/plugins/*) {
   fi
 }
 
+for config_file ($ZSH_EXT_BASE/lib_after_plugin/*.zsh) source $config_file
+
 # add local_tools at the top of PATH
 export PATH=/opt/local_tools:$PATH
 
