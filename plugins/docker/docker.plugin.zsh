@@ -1,61 +1,17 @@
 # docker
-alias d="docker"
-alias dc="docker compose"
-
-docker() {
-  case $1 in
-  i.l.a)
-    shift
-    command docker image ls --all "$@"
-    ;;
-  i.l)
-    shift
-    command docker image ls "$@"
-    ;;
-  i.p)
-    shift
-    command docker image prune "$@"
-    ;;
-  i.r)
-    shift
-    command docker image rm "$@"
-    ;;
-  i)
-    shift
-    command docker image "$@"
-    ;;
-  c.l.a)
-    shift
-    command docker container ls --all "$@"
-    ;;
-  c.l)
-    shift
-    command docker container ls "$@"
-    ;;
-  c.p)
-    shift
-    command docker container prune "$@"
-    ;;
-  c.r)
-    shift
-    command docker container rm "$@"
-    ;;
-  c)
-    shift
-    command docker container "$@"
-    ;;
-  v)
-    shift
-    command docker volume "$@"
-    ;;
-  v.l)
-    shift
-    command docker volume ls "$@"
-    ;;
-  *)
-    command docker "$@"
-    ;;
-  esac
-}
-
-dalias() { alias | grep 'docker' | sed "s/^\([^=]*\)=\(.*\)/\1 => \2/" | sed "s/['|\']//g" | sort; }
+abbr -S --quiet d="docker"
+abbr -S --quiet --quieter --force dc="docker compose"
+abbr -S --quiet "docker i.l.a"="docker image ls --all"
+abbr -S --quiet "docker i.l"="docker image ls"
+abbr -S --quiet "docker i.p"="docker image prune"
+abbr -S --quiet "docker i.r"="docker image rm"
+abbr -S --quiet "docker i"="docker image"
+abbr -S --quiet "docker c.l.a"="docker container ls --all"
+abbr -S --quiet "docker c.l"="docker container ls"
+abbr -S --quiet "docker c.p"="docker container prune"
+abbr -S --quiet "docker c.r"="docker container rm"
+abbr -S --quiet "docker c"="docker container"
+abbr -S --quiet "docker v"="docker volume"
+abbr -S --quiet "docker v.l"="docker volume ls"
+abbr -S --quiet "docker v.p"="docker volume prune"
+abbr -S --quiet "docker v.r"="docker volume rm"
