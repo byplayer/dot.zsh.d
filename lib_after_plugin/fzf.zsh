@@ -129,4 +129,4 @@ function fzf-ag () {
     code -g ${file}:${line}
   fi
 }
-abbr -S --quiet ag=fzf-ag
+abbr -S --quiet fag=fzf-ag
