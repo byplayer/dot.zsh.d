@@ -90,7 +90,7 @@ __fzf_generic_path_completion() {
 # git log command
 fzf-git-log ()
 {
-  git lg | \
+  git lg | emojify | \
    fzf --ansi --no-sort --reverse --tiebreak=index --preview \
    'f() { set -- $(echo -- "$@" | grep -o "[a-f0-9]\{7\}"); [ $# -eq 0 ] || git show --color=always $1 ; }; f {}' \
    --bind "j:down,k:up,alt-j:preview-down,alt-k:preview-up,ctrl-f:preview-page-down,ctrl-b:preview-page-up,q:abort,ctrl-m:execute:
@@ -102,7 +102,7 @@ fzf-git-log ()
 
 fzf-git-log-all ()
 {
-  git lga | \
+  git lga | emojify | \
    fzf --ansi --no-sort --reverse --tiebreak=index --preview \
    'f() { set -- $(echo -- "$@" | grep -o "[a-f0-9]\{7\}"); [ $# -eq 0 ] || git show --color=always $1 ; }; f {}' \
    --bind "j:down,k:up,alt-j:preview-down,alt-k:preview-up,ctrl-f:preview-page-down,ctrl-b:preview-page-up,q:abort,ctrl-m:execute:
@@ -112,8 +112,8 @@ fzf-git-log-all ()
     FZF-EOF" --preview-window=down:60%
 }
 
-abbr -S --quiet glg=fzf-git-log
-abbr -S --quiet glga=fzf-git-log-all
+alias glg=fzf-git-log
+alias glga=fzf-git-log
 
 # ag + fzf
 function fzf-ag () {
@@ -129,4 +129,4 @@ function fzf-ag () {
     code -g ${file}:${line}
   fi
 }
-abbr -S --quiet fag=fzf-ag
+alias fag=fzf-ag

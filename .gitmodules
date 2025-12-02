@@ -7,6 +7,3 @@
 [submodule "plugins/fzf-action"]
 	path = plugins/fzf-action
 	url = https://github.com/byplayer/fzf-action.git
-[submodule "pre_plugins/zsh-abbr"]
-	path = pre_plugins/zsh-abbr
-	url = https://github.com/olets/zsh-abbr
