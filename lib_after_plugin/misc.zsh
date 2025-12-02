@@ -68,7 +68,7 @@ EZA_COLORS+=":*.bk=38;5;245"
 EZA_COLORS+=":tm=38;5;245"
 export EZA_COLORS
 
-abbr -S --quiet --quieter --force ls="eza -g --icons --git"
+abbr -S --quiet ls="eza -g --icons --git"
 
 abbr -S --quiet cd_gtop='cd `git top`'
 
