@@ -68,12 +68,12 @@ EZA_COLORS+=":*.bk=38;5;245"
 EZA_COLORS+=":tm=38;5;245"
 export EZA_COLORS
 
-abbr -S --quiet ls="eza -g --icons --git"
+alias ls="eza -g --icons --git"
 
-abbr -S --quiet cd_gtop='cd `git top`'
+alias cd_gtop='cd `git top`'
 
 # tmux
-abbr -S --quiet tmux="tmux -2"
+alias tmux="tmux -2"
 
 # add path private scripts
 export PATH=~/.bin:$PATH
@@ -84,11 +84,3 @@ function ymd_date() {
 
 # use custom emacs
 export PATH=/opt/emacs/bin:${PATH}
-
-ABBR_REGULAR_ABBREVIATION_GLOB_PREFIXES+=(
-  '*& '
-  '*&& '
-  '*| '
-  '*|| '
-  '*; '
-)
