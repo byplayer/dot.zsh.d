@@ -86,16 +86,9 @@ function ymd_date() {
 export PATH=/opt/emacs/bin:${PATH}
 
 ABBR_REGULAR_ABBREVIATION_GLOB_PREFIXES+=(
-  ' '
   '*& '
   '*&& '
-  '*[|] '
-  '*[|][|] '
+  '*| '
+  '*|| '
   '*; '
-  '[A-Z]*=* '
-)
-
-ABBR_REGULAR_ABBREVIATION_SCALAR_PREFIXES+=(
-  'watch ' 'which ' 'sudo '
-  'env ' 'time ' 'nice ' 'nohup '
 )
