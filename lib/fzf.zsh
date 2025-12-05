@@ -18,11 +18,8 @@ case ${OSTYPE} in
   ;;
 esac
 
-export FZF_DEFAULT_OPTS='
---border --ansi
---reverse --exit-0'
-
-export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --color=fg:#000000,bg:#ffffff,hl:#177899 --color=fg+:#ffffff,bg+:#008cd7,hl+:#adebff --color=info:#afaf87,prompt:#cc0058,pointer:#d5abff --color=marker:#77e304,spinner:#a64cff,header:#87afaf'
+export FZF_DEFAULT_OPTS='--border --ansi --reverse --exit-0'
+export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --color=fg:000000,bg:#ffffff,hl:#177899 --color=fg+:#ffffff,bg+:#008cd7,hl+:#adebff --color=info:#afaf87,prompt:#cc0058,pointer:#d5abff --color=marker:#77e304,spinner:#a64cff,header:#87afaf'
 
 __fzf_is_binary() {
   a=$(file --mime "$1" | grep "charset=binary")
