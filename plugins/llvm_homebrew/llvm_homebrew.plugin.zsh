@@ -1,5 +1,5 @@
 case ${OSTYPE} in
 darwin*)
-    export PATH=$(brew --prefix llvm)/bin:$PATH
+    export PATH=${HOMEBREW_PREFIX}/opt/llvm/bin:$PATH
     ;;
 esac

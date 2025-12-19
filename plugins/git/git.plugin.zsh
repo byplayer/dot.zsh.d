@@ -5,7 +5,7 @@ alias g="git"
 
 case ${OSTYPE} in
   darwin*)
-    export PATH=$(brew --prefix git)/share/git-core/contrib/diff-highlight:$PATH
+    export PATH=${HOMEBREW_PREFIX}/opt/git/share/git-core/contrib/diff-highlight:$PATH
     ;;
 esac
 

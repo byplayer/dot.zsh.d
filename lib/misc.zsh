@@ -37,14 +37,14 @@ export TERM=xterm-256color
 # alias 設定
 case ${OSTYPE} in
 darwin*)
-  export PATH=$(brew --prefix coreutils)/libexec/gnubin/:$PATH
-  export MANPATH=$(brew --prefix coreutils)/libexec/gnuman:$MANPATH
-  export PATH=$(brew --prefix findutils)/libexec/gnubin:$PATH
-  export PATH=$(brew --prefix grep)/libexec/gnubin:$PATH
-  export PATH=$(brew --prefix make)/libexec/gnubin:$PATH
-  export PATH=$(brew --prefix gcc)/bin:$PATH
-  export PATH=$(brew --prefix mysql@8.0)/bin:$PATH
-  fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
+  export PATH=${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin/:$PATH
+  export MANPATH=${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnuman:$MANPATH
+  export PATH=${HOMEBREW_PREFIX}/opt/findutils/libexec/gnubin:$PATH
+  export PATH=${HOMEBREW_PREFIX}/opt/grep/libexec/gnubin:$PATH
+  export PATH=${HOMEBREW_PREFIX}/opt/make/libexec/gnubin:$PATH
+  export PATH=${HOMEBREW_PREFIX}/opt/gcc/bin:$PATH
+  export PATH=${HOMEBREW_PREFIX}/opt/mysql@8.0/bin:$PATH
+  fpath=(${HOMEBREW_PREFIX}/share/zsh/site-functions $fpath)
   ;;
 esac
 
