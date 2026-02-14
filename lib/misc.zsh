@@ -84,3 +84,6 @@ function ymd_date() {
 
 # use custom emacs
 export PATH=/opt/emacs/bin:${PATH}
+
+# claude
+export CC_STATUSLINE_NO_MODEL=1
