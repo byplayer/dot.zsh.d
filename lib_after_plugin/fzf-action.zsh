@@ -278,6 +278,19 @@ function _fzf-validate-worktree() {
         fi
     fi
 
+    # Check if branch is merged into the default branch
+    local branch_name="$(git -C "$worktree_path" branch --show-current 2>/dev/null)"
+    if [[ -n "$branch_name" ]]; then
+        local default_branch="$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')"
+        if [[ -z "$default_branch" ]]; then
+            default_branch="main"
+        fi
+        if ! git merge-base --is-ancestor "$branch_name" "$default_branch" 2>/dev/null; then
+            print "Warning: Branch '$branch_name' is not merged into '$default_branch'"
+            return 1
+        fi
+    fi
+
     return 0
 }
 
