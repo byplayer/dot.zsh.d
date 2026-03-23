@@ -180,6 +180,40 @@ function fzf-action-git-worktree-delete-with-branch() {
     zle accept-line
 }
 
+# fzf-action-git-worktree-delete-force-with-branch - Force delete worktree and branch without merge check
+# ZLE widget action that removes a worktree and force-deletes the branch.
+# Skips validation for uncommitted changes and unmerged branch checks.
+# Only checks that the worktree is not the current one.
+# Arguments:
+#   $1 - Formatted worktree entry from fzf selection
+# Side effects:
+#   Sets BUFFER with git commands and executes via zle accept-line
+#   Prints note if no branch to delete (detached HEAD)
+# Exit codes:
+#   0 - Success
+#   1 - Cannot delete current worktree
+function fzf-action-git-worktree-delete-force-with-branch() {
+    local worktree_path="$(fzf-action-git-worktree-extract-path "$1")"
+
+    local current_worktree="$(git rev-parse --show-toplevel 2>/dev/null)"
+    if [[ "$worktree_path" == "$current_worktree" ]]; then
+        print "Error: Cannot delete current worktree: $worktree_path"
+        BUFFER=""
+        zle accept-line
+        return 1
+    fi
+
+    local branch_name="$(git -C "$worktree_path" branch --show-current 2>/dev/null)"
+    if [[ -n "$branch_name" ]]; then
+        BUFFER="git worktree remove -f ${(q)worktree_path} && git branch -D ${(q)branch_name}"
+    else
+        # Detached HEAD or error - only remove worktree
+        print "Note: No branch to delete (detached HEAD or branch already deleted)"
+        BUFFER="git worktree remove -f ${(q)worktree_path}"
+    fi
+    zle accept-line
+}
+
 # fzf-action-git-worktree-append - Append worktree path to command buffer
 # ZLE widget action that inserts the worktree path at the current cursor position.
 # Arguments:
@@ -225,6 +259,7 @@ function fzf-action-git-worktree() {
         fzf-action-git-worktree-append
         fzf-action-git-worktree-delete
         fzf-action-git-worktree-delete-with-branch
+        fzf-action-git-worktree-delete-force-with-branch
     )
 
     local -a action_descriptions=(
@@ -232,6 +267,7 @@ function fzf-action-git-worktree() {
         "append - Append path to command buffer"
         "delete - Remove worktree"
         "delete-all - Remove worktree and delete branch"
+        "force-delete-all - Force remove worktree and delete branch (skip merge check)"
     )
 
     fzf-action-core "$candidates" "$(printf "%s\n" "${actions[@]}")" \
