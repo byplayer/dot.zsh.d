@@ -82,6 +82,15 @@ function ymd_date() {
   date +%Y%m%d
 }
 
+function copy_basename() {
+  emulate -L zsh
+  local url="$1"
+  local path="${url%%\?*}"
+  local copy_name="${path##*/}"
+  printf '%s' "$copy_name" | /usr/bin/pbcopy
+  print -r -- "copied: $copy_name"
+}
+
 # use custom emacs
 export PATH=/opt/emacs/bin:${PATH}
 
