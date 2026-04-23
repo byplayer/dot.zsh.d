@@ -1,10 +1,15 @@
 autoload -Uz add-zsh-hook
+zmodload zsh/system 2> /dev/null
 
 # for async update right prompt
 mkdir -p ${TMPPREFIX}
 
 RPROMPT_WORK_FNAME=zsh_prompt_hook.$$
 RPROMPT_WORK=${TMPPREFIX}/${RPROMPT_WORK_FNAME}
+
+# FD for zle-based async notification. zle -F callbacks run in widget
+# context, so $BUFFER / $KEYMAP are accessible there (unlike TRAPUSR2).
+typeset -g _prompt_async_fd=${_prompt_async_fd:-}
 
 function _prompt_is_in_git {
   if git rev-parse 2> /dev/null; then
@@ -76,12 +81,53 @@ function _git_stat_update {
     echo -n "%F{${VC_UNPUSHED_FG}}$(_prompt_git_not_pushed)" >> ${RPROMPT_WORK}
     echo "%F{${RPROMPT_FG_COLOR}}:%(4~,%-1~/.../%2~,%~)]%f" >> ${RPROMPT_WORK}
 
-    kill -s USR2 $$
+    # Notify parent via inherited FD (replaces kill -USR2).
+    [[ -n $_prompt_async_fd ]] && print -n -u $_prompt_async_fd x 2> /dev/null
+  fi
+}
+
+function _prompt_async_setup {
+  # Already set up and FD still valid
+  [[ -n $_prompt_async_fd ]] && [[ -e /dev/fd/$_prompt_async_fd ]] && return
+
+  local fifo=${TMPPREFIX}/zsh_prompt_async.$$
+  command rm -f $fifo
+  mkfifo $fifo 2> /dev/null || return 1
+
+  # Open read+write so the FD never sees EOF across child writes.
+  exec {_prompt_async_fd}<> $fifo
+  command rm -f $fifo
+
+  zle -F $_prompt_async_fd _prompt_async_callback
+}
+
+function _prompt_async_callback {
+  local fd=$1 discard
+
+  # Drain any buffered notification bytes non-blockingly.
+  while sysread -t 0 -i $fd discard 2> /dev/null; do :; done
+
+  if [ -f ${RPROMPT_WORK} ] ; then
+    local lines
+    lines=( ${(@f)"$(< ${RPROMPT_WORK})"} )
+    if [[ "$lines[1]" = "$(pwd)" ]] ; then
+      RPROMPT=$lines[2]
+    fi
+    command rm -f ${RPROMPT_WORK}
+
+    # widget context here — $BUFFER / $KEYMAP reflect real zle state.
+    # Skip reset-prompt while the user is typing or selecting in a
+    # completion menu; it would otherwise clobber the display.
+    if [[ -z $BUFFER ]] && [[ $KEYMAP != "menuselect" ]]; then
+      zle reset-prompt
+    fi
   fi
 }
 
 function _async_git_stat_update {
   RPROMPT=$RPROMPT_BASE
+
+  _prompt_async_setup
 
   # fail safe to clean up dead file
   if [ -f ${RPROMPT_WORK} ] ; then
@@ -90,19 +136,6 @@ function _async_git_stat_update {
 
   if [ ! -f ${RPROMPT_WORK} ] ; then
     _git_stat_update &!
-  fi
-}
-
-function TRAPUSR2 {
-  if [ -f ${RPROMPT_WORK} ] ; then
-    lines=( ${(@f)"$(< ${RPROMPT_WORK})"} )
-    if [[ "$lines[1]" = "$(pwd)" ]] ; then
-      RPROMPT=$lines[2]
-    fi
-    command rm -f ${RPROMPT_WORK}
-
-    # Force zsh to redisplay the prompt.
-    zle && zle reset-prompt
   fi
 }
 
