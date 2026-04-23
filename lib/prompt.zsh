@@ -102,7 +102,11 @@ function TRAPUSR2 {
     command rm -f ${RPROMPT_WORK}
 
     # Force zsh to redisplay the prompt.
-    zle && zle reset-prompt
+    # Skip when the user is typing or a completion menu is active,
+    # otherwise reset-prompt would clear their input/menu selection.
+    if [[ -z $BUFFER ]] && [[ $KEYMAP != "menuselect" ]]; then
+      zle && zle reset-prompt
+    fi
   fi
 }
 
