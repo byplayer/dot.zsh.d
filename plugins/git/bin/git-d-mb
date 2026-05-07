@@ -1,0 +1,18 @@
+#!/bin/bash
+
+set -eu
+
+base_branch=""
+for branch in develop main master; do
+    if git show-ref --verify --quiet "refs/heads/$branch"; then
+        base_branch="$branch"
+        break
+    fi
+done
+
+if [ -z "$base_branch" ]; then
+    echo "❌ Error: No base branch found (develop, main, or master)." >&2
+    exit 1
+fi
+
+exec git diff "$(git merge-base "$base_branch" HEAD)" "$@"
