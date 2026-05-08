@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -ue
+
+# Get repository name from git remote URL
+REMOTE_URL=$(git remote get-url origin 2>/dev/null || echo "")
+
+if [[ -z "$REMOTE_URL" ]]; then
+    echo "Error: Could not get origin remote URL" >&2
+    exit 1
+fi
+
+# Extract repository name from URL
+if [[ "$REMOTE_URL" =~ ^git@[^:]+:([^/]+)/([^/]+)(\.git)?$ ]]; then
+    REPO_NAME="${BASH_REMATCH[2]%.git}"
+elif [[ "$REMOTE_URL" =~ ^https?://[^/]+/([^/]+)/([^/]+)(\.git)?/?$ ]]; then
+    REPO_NAME="${BASH_REMATCH[2]%.git}"
+else
+    echo "Error: Could not parse repository name from remote URL: $REMOTE_URL" >&2
+    exit 1
+fi
+
+# Get current worktree directory's parent
+CURRENT_DIR=$(pwd)
+PARENT_DIR=$(cd "$(dirname "$CURRENT_DIR")" && pwd)
+
+# Get list of registered worktree paths (absolute, resolved)
+REGISTERED_WORKTREES=()
+while IFS= read -r line; do
+    if [[ "$line" =~ ^worktree[[:space:]]+(.+)$ ]]; then
+        wt_path="${BASH_REMATCH[1]}"
+        # Resolve to absolute path
+        if [[ -d "$wt_path" ]]; then
+            resolved=$(cd "$wt_path" && pwd)
+            REGISTERED_WORKTREES+=("$resolved")
+        else
+            REGISTERED_WORKTREES+=("$wt_path")
+        fi
+    fi
+done < <(git worktree list --porcelain)
+
+# Find candidate directories in the parent directory matching the repo prefix
+CANDIDATES=()
+for dir in "$PARENT_DIR"/"${REPO_NAME}"-*; do
+    [[ -d "$dir" ]] || continue
+    resolved=$(cd "$dir" && pwd)
+
+    # Skip if it's a registered worktree
+    is_registered=false
+    for reg in "${REGISTERED_WORKTREES[@]}"; do
+        if [[ "$resolved" == "$reg" ]]; then
+            is_registered=true
+            break
+        fi
+    done
+
+    if ! $is_registered; then
+        CANDIDATES+=("$resolved")
+    fi
+done
+
+if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
+    echo "No orphaned worktree directories found."
+    exit 0
+fi
+
+echo "The following directories are not registered as git worktrees:"
+for c in "${CANDIDATES[@]}"; do
+    echo "  $c"
+done
+echo
+
+for c in "${CANDIDATES[@]}"; do
+    read -r -p "Delete '$c'? [y/N]: " answer </dev/tty
+    if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+        rm -rf "$c"
+        echo "Deleted: $c"
+    else
+        echo "Skipped: $c"
+    fi
+done
