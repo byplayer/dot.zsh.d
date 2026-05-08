@@ -70,12 +70,12 @@ for c in "${CANDIDATES[@]}"; do
 done
 echo
 
-for c in "${CANDIDATES[@]}"; do
-    read -r -p "Delete '$c'? [y/N]: " answer </dev/tty
-    if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+read -r -p "Delete all of the above directories? [y/N]: " answer </dev/tty
+if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+    for c in "${CANDIDATES[@]}"; do
         rm -rf "$c"
         echo "Deleted: $c"
-    else
-        echo "Skipped: $c"
-    fi
-done
+    done
+else
+    echo "Aborted. No directories were deleted."
+fi
