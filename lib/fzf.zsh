@@ -1,5 +1,5 @@
-export PATH=/opt/fzf/bin:$PATH
-export MANPATH=/opt/fzf/man:`manpath -q`
+export PATH=${HOMEBREW_PREFIX}/opt/fzf/bin:$PATH
+export MANPATH=${HOMEBREW_PREFIX}/opt/fzf/share/man:`manpath -q`
 
 export FZF_TMUX_HEIGHT=60
 
@@ -8,15 +8,9 @@ export FZF_TMUX_HEIGHT=60
 #   kill <TAB>
 #   cd ../**<TAB>
 #   emacs **<TAB>
-if [ -f /opt/fzf/shell/completion.zsh ]; then
-  source /opt/fzf/shell/completion.zsh
+if [ -f ${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh ]; then
+  source ${HOMEBREW_PREFIX}/opt/fzf/shell/completion.zsh
 fi
-
-case ${OSTYPE} in
-  darwin*)
-    source $(brew ls fzf | grep --color=no shell | grep --color=no completion.zsh)
-  ;;
-esac
 
 export FZF_DEFAULT_OPTS='--border --ansi --reverse --exit-0'
 export FZF_DEFAULT_OPTS=$FZF_DEFAULT_OPTS' --color=fg:000000,bg:#ffffff,hl:#177899 --color=fg+:#ffffff,bg+:#008cd7,hl+:#adebff --color=info:#afaf87,prompt:#cc0058,pointer:#d5abff --color=marker:#77e304,spinner:#a64cff,header:#87afaf'
