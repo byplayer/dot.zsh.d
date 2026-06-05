@@ -32,7 +32,10 @@ __fzfcmd() {
 
 # CTRL-G C for cdr
 function fzf-cdr () {
-  local selected_dir=$(cdr -l | awk '{ print $2 }' | $(__fzfcmd) --query "$LBUFFER")
+  # 履歴は消さず、表示時に「今 存在するディレクトリ」だけに絞る（~ 表記は保持）
+  local selected_dir=$(cdr -l | awk '{ print $2 }' \
+    | while IFS= read -r d; do [[ -d ${d/#\~/$HOME} ]] && print -r -- "$d"; done \
+    | $(__fzfcmd) --query "$LBUFFER")
   if [ -n "$selected_dir" ]; then
     BUFFER="cd ${selected_dir}"
     zle accept-line
