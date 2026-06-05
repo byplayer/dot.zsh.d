@@ -1,0 +1,140 @@
+#!/bin/bash
+
+set -ue
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+source "${SCRIPT_DIR}/common.bash"
+
+# 使い方を表示する
+usage() {
+    cat <<'USAGE'
+Usage: git-remove-current-wt [-f] [-h]
+
+カレントディレクトリの git worktree とそのブランチを削除します。
+ベースブランチ(develop→main→master)の worktree へ移動してから削除し、
+tmux 使用時は元ペインをベース worktree へ cd します。
+
+Options:
+  -f    worktree とブランチを強制削除する (git worktree remove -f / git branch -D)
+  -h    このヘルプを表示する
+
+main / develop / master の worktree は削除できません。
+USAGE
+}
+
+# 引数を解析する。-f で強制削除、-h でヘルプ、未知の引数はエラーにする
+FORCE=0
+case "${1:-}" in
+    -h | --help)
+        usage
+        exit 0
+        ;;
+    -f)
+        FORCE=1
+        ;;
+    "")
+        ;;
+    *)
+        echo "Error: unknown argument: $1" >&2
+        usage >&2
+        exit 1
+        ;;
+esac
+
+# 処理中に別ペインへフォーカスが移っても元のペインへ送れるよう、
+# 開始時点のペイン(本スクリプトが動いているペイン)を保存しておく
+ORIG_PANE="${TMUX_PANE:-}"
+
+# カレントディレクトリの worktree のトップレベルパスと、チェックアウト中のブランチを取得する
+TARGET_WORKTREE=$(git rev-parse --show-toplevel)
+TARGET_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# 削除対象が main / develop / master の場合は中止する(ベースブランチは消さない)
+case "$TARGET_BRANCH" in
+    main | develop | master)
+        echo "Error: Current worktree is the base branch (${TARGET_BRANCH}); refusing to remove it" >&2
+        exit 1
+        ;;
+esac
+
+# 移動先のベース worktree を決める。
+# develop → main → master の順に、そのブランチが checkout されている
+# worktree が実在する最初のものを採用する(ref の有無ではなく worktree の有無で判定)。
+WORKTREE_LIST=$(git worktree list --porcelain)
+BASE_WORKTREE=""
+for candidate in develop main master; do
+    wt=$(awk -v base="refs/heads/${candidate}" '
+        /^worktree / { path = substr($0, 10) }
+        $0 == "branch " base { print path; exit }
+    ' <<< "$WORKTREE_LIST")
+    if [[ -n "$wt" ]]; then
+        BASE_WORKTREE="$wt"
+        break
+    fi
+done
+
+if [[ -z "$BASE_WORKTREE" ]]; then
+    echo "Error: Could not find a worktree for any base branch (develop, main, master)" >&2
+    exit 1
+fi
+
+# ベースブランチの worktree へ移動する
+cd "$BASE_WORKTREE"
+
+# worktree を削除する。-f 指定時は強制削除する。
+# submodule を含む worktree は git worktree remove では削除できない
+# (fatal: working trees containing submodules cannot be moved or removed) ため、
+# 失敗時は submodule を deinit してから再度 git worktree remove を呼ぶ。
+force_flag=""
+if [[ "$FORCE" -eq 1 ]]; then
+    force_flag="-f"
+fi
+
+if remove_err=$(git worktree remove $force_flag "$TARGET_WORKTREE" 2>&1); then
+    : # 正常に削除できた
+else
+    if [[ "$remove_err" == *submodule* ]]; then
+        # -f 未指定時は未コミットの変更があれば中止する(データ消失防止)
+        if [[ "$FORCE" -ne 1 && -n "$(git -C "$TARGET_WORKTREE" status --porcelain)" ]]; then
+            echo "Error: ${TARGET_WORKTREE} has uncommitted changes; use -f to force removal" >&2
+            exit 1
+        fi
+        echo "Worktree contains submodules; deinitializing submodules then removing"
+        # deinit は共有 .git/config の submodule 設定(url/active)を消すため、
+        # 他の worktree(ベース worktree 含む)でも submodule が未初期化扱いになる。
+        # そこで事前に設定を退避し、worktree 削除後に復元して影響を打ち消す。
+        SUBMODULE_CONFIG=$(git config --get-regexp '^submodule\.' || true)
+        # submodule を解除して worktree から取り除く(中身を空にする)
+        git -C "$TARGET_WORKTREE" submodule deinit -f --all
+        # 解除後は worktree が変更扱いになるため -f で削除する
+        git worktree remove -f "$TARGET_WORKTREE"
+        # 退避した submodule 設定を共有 config に復元する
+        if [[ -n "$SUBMODULE_CONFIG" ]]; then
+            while IFS=' ' read -r cfg_key cfg_value; do
+                [[ -z "$cfg_key" ]] && continue
+                git config "$cfg_key" "$cfg_value"
+            done <<< "$SUBMODULE_CONFIG"
+        fi
+    else
+        # submodule 以外の理由(未コミット変更等)で失敗した場合は元のエラーを表示して中止
+        echo "$remove_err" >&2
+        exit 1
+    fi
+fi
+
+# カレントディレクトリ(削除済み)から抜けるため、開始時に保存したペインを
+# BASE_WORKTREE へ移動させる。ブランチ削除(未マージ時に失敗しうる)で
+# 中断しても確実に cd できるよう、ブランチ削除より前にキーを送る。
+# 送ったキーは本スクリプト終了後にシェルが実行する。
+if [[ -n "${TMUX:-}" && -n "$ORIG_PANE" ]]; then
+    tmux send-keys -t "$ORIG_PANE" "cd '$BASE_WORKTREE'" Enter
+else
+    echo "Note: current directory was removed. Run: cd '$BASE_WORKTREE'"
+fi
+
+# ブランチを削除する。-f 指定時は強制削除する
+if [[ "$FORCE" -eq 1 ]]; then
+    git branch -D "$TARGET_BRANCH"
+else
+    git branch -d "$TARGET_BRANCH"
+fi
