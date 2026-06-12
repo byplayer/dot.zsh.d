@@ -9,6 +9,10 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
+# 処理中に別ペインへフォーカスが移っても元のペインへ送れるよう、
+# 開始時点のペイン(本スクリプトが動いているペイン)を保存しておく
+ORIG_PANE="${TMUX_PANE:-}"
+
 # Store the first argument as BRANCH_NAME
 BRANCH_NAME="$1"
 
@@ -39,14 +43,29 @@ fi
 # Replace forward slashes with hyphens for directory name
 DIR_BRANCH_NAME="${BRANCH_NAME//\//-}"
 
+# Determine the worktree path
+WORKTREE_PATH="../${REPO_NAME}-${DIR_BRANCH_NAME}"
+
 # Check if the branch exists locally and execute the appropriate git worktree add command
 if [[ -n "$COMMIT_ISH" ]]; then
     # Commit-ish is provided, create new branch from the specified commit-ish
-    git worktree add --track "../${REPO_NAME}-${DIR_BRANCH_NAME}" -b "${BRANCH_NAME}" "$COMMIT_ISH"
+    git worktree add --track "$WORKTREE_PATH" -b "${BRANCH_NAME}" "$COMMIT_ISH"
 elif git show-ref --verify --quiet "refs/heads/${BRANCH_NAME}"; then
     # Branch exists locally, use existing branch
-    git worktree add "../${REPO_NAME}-${DIR_BRANCH_NAME}" "${BRANCH_NAME}"
+    git worktree add "$WORKTREE_PATH" "${BRANCH_NAME}"
 else
     # Branch doesn't exist locally, create new branch
-    git worktree add "../${REPO_NAME}-${DIR_BRANCH_NAME}" -b "${BRANCH_NAME}"
+    git worktree add "$WORKTREE_PATH" -b "${BRANCH_NAME}"
+fi
+
+# 追加した worktree の絶対パスを取得する(WORKTREE_PATH は相対パスのため)
+ABS_WORKTREE_PATH="$(cd "$WORKTREE_PATH" && pwd)"
+
+# tmux 使用時は、開始時に保存したペインのカレントディレクトリを
+# 追加した worktree へ切り替える。送ったキーは本スクリプト終了後に
+# シェルが実行する。
+if [[ -n "${TMUX:-}" && -n "$ORIG_PANE" ]]; then
+    tmux send-keys -t "$ORIG_PANE" "cd '$ABS_WORKTREE_PATH'" Enter
+else
+    echo "Note: run the following to switch into the new worktree: cd '$ABS_WORKTREE_PATH'"
 fi
