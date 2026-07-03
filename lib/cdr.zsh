@@ -75,14 +75,17 @@ __cdr_prune_recent_dirs() {
 
   local tmp="${__CDR_FILE}.tmp.$$"
   local line dir
+  local -a parts
   # try/always: 途中で return・エラー・シグナルのいずれで抜けても
   # 必ず fd を閉じて（＝ロック解放）tmp を後始末する。
   {
     : > "$tmp" || return 0
     while IFS= read -r line; do
       [[ -n $line ]] || continue
-      # 各行は $'...' 形式なので eval で実パスへ復号する
-      eval "dir=$line"
+      # 各行は $'...' 形式。cdr 本体（chpwd_recent_filehandler）と同じく
+      # (z) で分割し (Q) で引用符を外して実パスへ復号する（eval は使わない）。
+      parts=(${(z)line})
+      dir=${(Q)${parts[1]:-}}
       [[ -d $dir ]] && print -r -- "$line" >> "$tmp"
     done < "$__CDR_FILE"
     mv -f "$tmp" "$__CDR_FILE" 2>/dev/null
