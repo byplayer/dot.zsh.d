@@ -32,9 +32,9 @@ __fzfcmd() {
 
 # CTRL-G C for cdr
 function fzf-cdr () {
-  # 履歴は消さず、表示時に「今 存在するディレクトリ」だけに絞る（~ 表記は保持）
+  # 存在チェックは表示時に行わず、cdr の履歴をそのまま全件表示する（高速）。
+  # 存在しないディレクトリの掃除は cd 時に非同期で行う（lib/cdr.zsh 参照）。
   local selected_dir=$(cdr -l | awk '{ print $2 }' \
-    | while IFS= read -r d; do [[ -d ${d/#\~/$HOME} ]] && print -r -- "$d"; done \
     | $(__fzfcmd) --query "$LBUFFER")
   if [ -n "$selected_dir" ]; then
     BUFFER="cd ${selected_dir}"
