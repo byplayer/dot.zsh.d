@@ -112,11 +112,11 @@ __cdr_prune_recent_dirs() {
   }
 }
 
-# cd のたびに実行する必要はないので、確率的に（およそ 1/500）
+# cd のたびに実行する必要はないので、確率的に（およそ 1/200）
 # バックグラウンドで起動する。&! でジョブを切り離し、
 # プロンプト表示をブロックしない。
 __cdr_prune_recent_dirs_maybe() {
-  (( RANDOM % 500 == 0 )) || return 0
+  (( RANDOM % 200 == 0 )) || return 0
   __cdr_prune_recent_dirs &!
 }
 add-zsh-hook chpwd __cdr_prune_recent_dirs_maybe
