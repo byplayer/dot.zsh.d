@@ -3,14 +3,17 @@ zstyle ':completion:*' recent-dirs-insert both
 zstyle ':chpwd:*' recent-dirs-max 5000
 zstyle ':chpwd:*' recent-dirs-default true
 
-# cdr の履歴ファイルとロックファイル。
+# cdr の履歴ファイルとロックファイル。意図的なグローバルであることを typeset -g で
+# 明示する（readonly は付けない: 設定を再ソースすると read-only エラーになるため）。
 # recent-dirs-file style は未設定なので cdr 本体と同じデフォルトに合わせる。
-__CDR_FILE="${ZDOTDIR:-$HOME}/.chpwd-recent-dirs"
-__CDR_LOCK="${__CDR_FILE}.lock"
+typeset -g __CDR_FILE="${ZDOTDIR:-$HOME}/.chpwd-recent-dirs"
+typeset -g __CDR_LOCK="${__CDR_FILE}.lock"
 # ロックファイルが作成からこの秒数以上経過していたら、異常終了などで残った
 # stale なロックとみなす（30 分）。ロックファイルには一切書き込まないため
 # mtime = 作成日時のままなので、mtime の経過時間で判定できる。
-__CDR_LOCK_STALE_SEC=1800
+typeset -gi __CDR_LOCK_STALE_SEC=1800
+# ロック取得に成功した fd を入れるグローバル（__cdr_flock がセットする）。
+typeset -g __cdr_fd=''
 
 # zsystem flock -f <var> <file> はファイルを O_CREAT では開かない（無いと失敗する）
 # ため、あらかじめ空のロックファイルを用意しておく。
