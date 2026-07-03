@@ -5,8 +5,22 @@ zstyle ':chpwd:*' recent-dirs-default true
 
 # cdr の履歴ファイルとロックファイル。意図的なグローバルであることを typeset -g で
 # 明示する（readonly は付けない: 設定を再ソースすると read-only エラーになるため）。
-# recent-dirs-file style は未設定なので cdr 本体と同じデフォルトに合わせる。
-typeset -g __CDR_FILE="${ZDOTDIR:-$HOME}/.chpwd-recent-dirs"
+#
+# 履歴ファイルのパスは cdr 本体（chpwd_recent_filehandler）と同じ手順で解決する:
+# recent-dirs-file style があればそれを使い（"+" はデフォルトに展開）、無ければ
+# ${ZDOTDIR:-$HOME}/.chpwd-recent-dirs を使う。書き込み先は先頭要素 files[1]。
+# style はここで評価するので、recent-dirs-file を使う場合は上の zstyle 群と
+# 一緒に（この行より前で）設定すること。
+typeset -g __CDR_FILE
+() {
+  emulate -L zsh
+  setopt extended_glob
+  local default=${ZDOTDIR:-$HOME}/.chpwd-recent-dirs
+  local -a files
+  zstyle -a ':chpwd:' recent-dirs-file files && files=(${files//(#s)+(#e)/$default})
+  (( ${#files} )) || files=($default)
+  __CDR_FILE=${files[1]}
+}
 typeset -g __CDR_LOCK="${__CDR_FILE}.lock"
 # ロックファイルが作成からこの秒数以上経過していたら、異常終了などで残った
 # stale なロックとみなす（30 分）。ロックファイルには一切書き込まないため
