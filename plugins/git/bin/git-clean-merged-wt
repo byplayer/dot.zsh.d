@@ -39,7 +39,11 @@ USAGE
 DRY_RUN=0
 ASSUME_YES=0
 FORCE=0
-remove_flag=""
+
+# git worktree remove に渡す追加オプション(-f 指定時のみ要素が入る)。
+# bash 3.2 では set -u 下の空配列展開が unbound variable になるため、
+# 参照側では "${REMOVE_OPTS[@]+"${REMOVE_OPTS[@]}"}" の形で展開する。
+REMOVE_OPTS=()
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -82,6 +86,13 @@ done
 if [[ ${#BASE_BRANCHES[@]} -eq 0 ]]; then
     echo "Error: No base branch found (main, develop, or master)" >&2
     exit 1
+fi
+
+# 既に削除されたディレクトリの worktree エントリ(prunable)を先に整理しておく。
+# 残っていると一覧に出た挙げ句 git worktree remove が失敗しうるため。
+# dry-run 時は状態を変えないので実行しない。
+if [[ "$DRY_RUN" -ne 1 ]]; then
+    git worktree prune
 fi
 
 # メインの worktree とカレント worktree のパスを保護対象として控えておく
@@ -137,7 +148,8 @@ merged_into() {
 worktree_status() {
     local path="$1"
 
-    git -C "$path" status --porcelain --ignore-submodules=all
+    # ディレクトリが既に消えている(prunable)場合の fatal は表示しない
+    git -C "$path" status --porcelain --ignore-submodules=all 2>/dev/null || true
 
     # foreach は各 submodule で "Entering '<path>'" を出すため --quiet で抑制する。
     # submodule が未初期化・存在しない場合はエラーを無視する。
@@ -152,11 +164,12 @@ worktree_is_clean() {
 
 # worktree を削除する。submodule を含んでいて削除できない場合は、
 # submodule 内も clean であれば submodule を deinit してから強制削除する。
+# 参照するグローバル: REMOVE_OPTS (git worktree remove の追加オプション), FORCE
 remove_worktree() {
     local path="$1"
     local remove_err
 
-    if remove_err=$(git worktree remove $remove_flag "$path" 2>&1); then
+    if remove_err=$(git worktree remove "${REMOVE_OPTS[@]+"${REMOVE_OPTS[@]}"}" "$path" 2>&1); then
         return 0
     fi
 
@@ -207,30 +220,37 @@ wt_path=""
 wt_branch=""
 wt_detached=0
 
-# --porcelain の 1 レコード分の情報から削除候補かどうかを判定する
-examine_worktree() {
-    [[ -n "$wt_path" ]] || return 0
+# --porcelain の 1 レコード分($1: worktree パス, $2: ブランチ名, $3: detached なら 1)を
+# 受け取り、削除候補なら TARGET_PATHS / TARGET_BRANCHES / TARGET_REASONS に追記する。
+# 参照するグローバル: MAIN_WORKTREE, CURRENT_WORKTREE, BASE_BRANCHES
+# 追記するグローバル: TARGET_PATHS, TARGET_BRANCHES, TARGET_REASONS
+collect_if_removable() {
+    local path="$1"
+    local branch="$2"
+    local detached="$3"
+
+    [[ -n "$path" ]] || return 0
 
     # メインの worktree は削除できないので除外する
-    if [[ "$wt_path" == "$MAIN_WORKTREE" ]]; then
+    if [[ "$path" == "$MAIN_WORKTREE" ]]; then
         return 0
     fi
 
     # カレントディレクトリを含む worktree は削除しない
     # (削除すると cwd が消えるため。git-remove-current-wt を使うこと)
-    if [[ -n "$CURRENT_WORKTREE" && "$wt_path" == "$CURRENT_WORKTREE" ]]; then
+    if [[ -n "$CURRENT_WORKTREE" && "$path" == "$CURRENT_WORKTREE" ]]; then
         return 0
     fi
 
     # detached HEAD はブランチを特定できないので除外する
-    if [[ "$wt_detached" -eq 1 || -z "$wt_branch" ]]; then
+    if [[ "$detached" -eq 1 || -z "$branch" ]]; then
         return 0
     fi
 
     # ベースブランチ自体をチェックアウトしている worktree は除外する
     local base
     for base in "${BASE_BRANCHES[@]}"; do
-        if [[ "$wt_branch" == "$base" ]]; then
+        if [[ "$branch" == "$base" ]]; then
             return 0
         fi
     done
@@ -238,9 +258,9 @@ examine_worktree() {
     # いずれかのベースブランチにマージ済みなら削除候補にする
     local how
     for base in "${BASE_BRANCHES[@]}"; do
-        if how=$(merged_into "$wt_branch" "$base"); then
-            TARGET_PATHS+=("$wt_path")
-            TARGET_BRANCHES+=("$wt_branch")
+        if how=$(merged_into "$branch" "$base"); then
+            TARGET_PATHS+=("$path")
+            TARGET_BRANCHES+=("$branch")
             TARGET_REASONS+=("${how} into ${base}")
             return 0
         fi
@@ -251,7 +271,7 @@ while IFS= read -r line; do
     case "$line" in
         "worktree "*)
             # 次のレコードに入る前に、直前のレコードを判定する
-            examine_worktree
+            collect_if_removable "$wt_path" "$wt_branch" "$wt_detached"
             wt_path="${line#worktree }"
             wt_branch=""
             wt_detached=0
@@ -265,10 +285,15 @@ while IFS= read -r line; do
     esac
 done < <(git worktree list --porcelain)
 # 最後のレコードを判定する
-examine_worktree
+collect_if_removable "$wt_path" "$wt_branch" "$wt_detached"
 
 if [[ ${#TARGET_PATHS[@]} -eq 0 ]]; then
     echo "No merged worktrees found."
+    # 判定はローカルのベースブランチ基準のため、PR マージ直後などで
+    # ローカルが古いと検出できない。ネットワーク I/O を伴う fetch は
+    # 勝手に実行せず、ヒントの表示にとどめる。
+    echo "Hint: merged state is checked against your local ${BASE_BRANCHES[*]}."
+    echo "      If a branch was merged recently, update it first (git fetch / git pull)."
     exit 0
 fi
 
@@ -303,6 +328,15 @@ if [[ "$DRY_RUN" -eq 1 ]]; then
 fi
 
 if [[ "$ASSUME_YES" -ne 1 ]]; then
+    # CI やパイプ経由では /dev/tty を開けない。set -e で無言のまま
+    # 終了すると原因が分からないため、理由と対処を示して終了する。
+    # 制御端末が無くても /dev/tty のノード自体は存在しうる(-r では判定できない)ため、
+    # 実際に open できるかで判定する。
+    if ! { : < /dev/tty; } 2>/dev/null; then
+        echo "Error: no tty available for the confirmation prompt; use -y to skip it" >&2
+        exit 1
+    fi
+
     read -r -p "Remove the above worktrees and their branches? [y/N]: " answer < /dev/tty
     if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
         echo "Aborted. Nothing was deleted."
@@ -310,9 +344,8 @@ if [[ "$ASSUME_YES" -ne 1 ]]; then
     fi
 fi
 
-remove_flag=""
 if [[ "$FORCE" -eq 1 ]]; then
-    remove_flag="-f"
+    REMOVE_OPTS=(-f)
 fi
 
 FAILED=0
