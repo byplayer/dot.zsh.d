@@ -1,0 +1,343 @@
+#!/bin/bash
+
+set -ue
+
+# 使い方を表示する
+usage() {
+    cat <<'USAGE'
+Usage: git clean-merged-wt [-n] [-y] [-f] [-h]
+
+ベースブランチ(main / develop / master)にマージ済みのブランチを
+チェックアウトしている git worktree を探し、worktree とローカルブランチを削除します。
+
+マージ済み判定は以下の順で行います。
+  1. ベースブランチの祖先になっている (通常の merge / fast-forward)
+  2. 全コミットが patch 等価でベースに含まれる (rebase merge)
+  3. ブランチのツリーを 1 コミットにまとめたものが patch 等価で含まれる (squash merge)
+
+submodule を含む worktree は git worktree remove では削除できないため、
+submodule 内も含めて未コミットの変更が無い場合に限り、submodule を deinit してから
+強制削除します。
+
+削除対象の一覧には、未コミットの変更(submodule 内を含む)があれば併せて表示します。
+
+Options:
+  -n    削除対象を表示するだけで実際には削除しない (dry-run)
+  -y    確認プロンプトを出さずに削除する
+  -f    未コミットの変更があっても強制削除する
+        (git worktree remove -f / git branch -D)
+  -h    このヘルプを表示する
+
+以下の worktree は対象外です。
+  - main / develop / master をチェックアウトしている worktree
+  - メインの worktree (bare でないリポジトリ本体)
+  - カレントディレクトリを含む worktree
+  - detached HEAD の worktree
+USAGE
+}
+
+DRY_RUN=0
+ASSUME_YES=0
+FORCE=0
+remove_flag=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        -n)
+            DRY_RUN=1
+            ;;
+        -y)
+            ASSUME_YES=1
+            ;;
+        -f)
+            FORCE=1
+            ;;
+        *)
+            echo "Error: unknown argument: $1" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+# git リポジトリ内かどうかを確認する
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    echo "Error: not a git repository" >&2
+    exit 1
+fi
+
+# 存在するベースブランチを列挙する(ローカルブランチとして存在するものだけ)
+BASE_BRANCHES=()
+for candidate in main develop master; do
+    if git show-ref --verify --quiet "refs/heads/${candidate}"; then
+        BASE_BRANCHES+=("$candidate")
+    fi
+done
+
+if [[ ${#BASE_BRANCHES[@]} -eq 0 ]]; then
+    echo "Error: No base branch found (main, develop, or master)" >&2
+    exit 1
+fi
+
+# メインの worktree とカレント worktree のパスを保護対象として控えておく
+MAIN_WORKTREE=$(git worktree list --porcelain | awk '/^worktree /{print substr($0, 10); exit}')
+CURRENT_WORKTREE=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+
+# ブランチ $1 がベースブランチ $2 にマージ済みかを判定する。
+# マージ済みなら判定方法(merged / rebased / squashed)を stdout に出力して 0 を返す。
+merged_into() {
+    local branch="$1"
+    local base="$2"
+
+    # 1. 通常の merge / fast-forward: ベースの祖先になっている
+    if git merge-base --is-ancestor "$branch" "$base"; then
+        echo "merged"
+        return 0
+    fi
+
+    local merge_base
+    merge_base=$(git merge-base "$base" "$branch" 2>/dev/null || echo "")
+    if [[ -z "$merge_base" ]]; then
+        return 1
+    fi
+
+    # ブランチ側にコミットが無ければ比較不要(1 で拾えなかった時点で対象外)
+    if [[ -z "$(git rev-list "${merge_base}..${branch}")" ]]; then
+        return 1
+    fi
+
+    # 2. rebase merge: ブランチの各コミットが patch 等価でベースに含まれる。
+    #    git cherry は取り込み済みを "-"、未取り込みを "+" で出力するため、
+    #    "+" が 1 つも無ければ全て取り込み済みとみなす。
+    if ! git cherry "$base" "$branch" "$merge_base" | grep -q '^+'; then
+        echo "rebased"
+        return 0
+    fi
+
+    # 3. squash merge: ブランチの内容を merge-base の上の 1 コミットに畳んだものが
+    #    patch 等価でベースに含まれるかを見る。
+    local squashed
+    squashed=$(git commit-tree "${branch}^{tree}" -p "$merge_base" -m _ 2>/dev/null || echo "")
+    if [[ -n "$squashed" ]] && ! git cherry "$base" "$squashed" "$merge_base" | grep -q '^+'; then
+        echo "squashed"
+        return 0
+    fi
+
+    return 1
+}
+
+# worktree $1 の未コミットの変更を porcelain 形式で出力する。
+# 親側は submodule の状態を除いて出力し、submodule 内の変更は
+# submodule foreach で再帰的に集めて [<submodule path>] 付きで出力する。
+worktree_status() {
+    local path="$1"
+
+    git -C "$path" status --porcelain --ignore-submodules=all
+
+    # foreach は各 submodule で "Entering '<path>'" を出すため --quiet で抑制する。
+    # submodule が未初期化・存在しない場合はエラーを無視する。
+    git -C "$path" submodule foreach --recursive --quiet \
+        'git status --porcelain | sed "s|^|[${displaypath}] |"' 2>/dev/null || true
+}
+
+# worktree $1 に未コミットの変更(submodule 内を含む)が無ければ 0 を返す
+worktree_is_clean() {
+    [[ -z "$(worktree_status "$1")" ]]
+}
+
+# worktree を削除する。submodule を含んでいて削除できない場合は、
+# submodule 内も clean であれば submodule を deinit してから強制削除する。
+remove_worktree() {
+    local path="$1"
+    local remove_err
+
+    if remove_err=$(git worktree remove $remove_flag "$path" 2>&1); then
+        return 0
+    fi
+
+    # submodule 以外の理由(未コミット変更等)で失敗した場合は元のエラーを出して中止する
+    if [[ "$remove_err" != *submodule* ]]; then
+        echo "$remove_err" >&2
+        return 1
+    fi
+
+    # -f 未指定時は、submodule 内も含めて clean な場合だけ削除を続行する(データ消失防止)
+    if [[ "$FORCE" -ne 1 ]] && ! worktree_is_clean "$path"; then
+        echo "has uncommitted changes (including submodules); use -f to force removal" >&2
+        return 1
+    fi
+
+    # deinit は共有 .git/config の submodule 設定(url/active)を消すため、
+    # 他の worktree でも submodule が未初期化扱いになる。
+    # そこで事前に設定を退避し、worktree 削除後に復元して影響を打ち消す。
+    local submodule_config deinit_err rc=0
+    submodule_config=$(git config --get-regexp '^submodule\.' || true)
+
+    if ! deinit_err=$(git -C "$path" submodule deinit -f --all 2>&1); then
+        echo "$deinit_err" >&2
+        rc=1
+    # deinit 後は worktree が変更扱いになるため -f で削除する
+    elif ! remove_err=$(git worktree remove -f "$path" 2>&1); then
+        echo "$remove_err" >&2
+        rc=1
+    fi
+
+    # 退避した submodule 設定を共有 config に復元する(削除に失敗した場合も戻す)
+    if [[ -n "$submodule_config" ]]; then
+        while IFS=' ' read -r cfg_key cfg_value; do
+            [[ -z "$cfg_key" ]] && continue
+            git config "$cfg_key" "$cfg_value"
+        done <<< "$submodule_config"
+    fi
+
+    return "$rc"
+}
+
+# worktree の一覧を走査して削除候補を集める
+TARGET_PATHS=()
+TARGET_BRANCHES=()
+TARGET_REASONS=()
+
+wt_path=""
+wt_branch=""
+wt_detached=0
+
+# --porcelain の 1 レコード分の情報から削除候補かどうかを判定する
+examine_worktree() {
+    [[ -n "$wt_path" ]] || return 0
+
+    # メインの worktree は削除できないので除外する
+    if [[ "$wt_path" == "$MAIN_WORKTREE" ]]; then
+        return 0
+    fi
+
+    # カレントディレクトリを含む worktree は削除しない
+    # (削除すると cwd が消えるため。git-remove-current-wt を使うこと)
+    if [[ -n "$CURRENT_WORKTREE" && "$wt_path" == "$CURRENT_WORKTREE" ]]; then
+        return 0
+    fi
+
+    # detached HEAD はブランチを特定できないので除外する
+    if [[ "$wt_detached" -eq 1 || -z "$wt_branch" ]]; then
+        return 0
+    fi
+
+    # ベースブランチ自体をチェックアウトしている worktree は除外する
+    local base
+    for base in "${BASE_BRANCHES[@]}"; do
+        if [[ "$wt_branch" == "$base" ]]; then
+            return 0
+        fi
+    done
+
+    # いずれかのベースブランチにマージ済みなら削除候補にする
+    local how
+    for base in "${BASE_BRANCHES[@]}"; do
+        if how=$(merged_into "$wt_branch" "$base"); then
+            TARGET_PATHS+=("$wt_path")
+            TARGET_BRANCHES+=("$wt_branch")
+            TARGET_REASONS+=("${how} into ${base}")
+            return 0
+        fi
+    done
+}
+
+while IFS= read -r line; do
+    case "$line" in
+        "worktree "*)
+            # 次のレコードに入る前に、直前のレコードを判定する
+            examine_worktree
+            wt_path="${line#worktree }"
+            wt_branch=""
+            wt_detached=0
+            ;;
+        "branch "*)
+            wt_branch="${line#branch refs/heads/}"
+            ;;
+        detached)
+            wt_detached=1
+            ;;
+    esac
+done < <(git worktree list --porcelain)
+# 最後のレコードを判定する
+examine_worktree
+
+if [[ ${#TARGET_PATHS[@]} -eq 0 ]]; then
+    echo "No merged worktrees found."
+    exit 0
+fi
+
+# 一覧を表示する。未コミットの変更がある worktree はその内容も併せて表示する
+echo "The following worktrees are merged into a base branch:"
+DIRTY_FOUND=0
+for i in "${!TARGET_PATHS[@]}"; do
+    printf '  %s (branch: %s, %s)\n' "${TARGET_PATHS[$i]}" "${TARGET_BRANCHES[$i]}" "${TARGET_REASONS[$i]}"
+
+    status=$(worktree_status "${TARGET_PATHS[$i]}")
+    [[ -z "$status" ]] && continue
+
+    DIRTY_FOUND=1
+    count=$(wc -l <<< "$status" | tr -d ' ')
+    printf '    ⚠️  uncommitted changes (%s file(s)):\n' "$count"
+    # 変更が多い場合は先頭 10 件だけ表示する
+    head -n 10 <<< "$status" | sed 's/^/      /'
+    if [[ "$count" -gt 10 ]]; then
+        printf '      ... and %s more\n' "$((count - 10))"
+    fi
+done
+echo
+
+if [[ "$DIRTY_FOUND" -eq 1 && "$FORCE" -ne 1 ]]; then
+    echo "Note: worktrees with uncommitted changes are not removed unless -f is given."
+    echo
+fi
+
+if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "Dry-run: nothing was deleted."
+    exit 0
+fi
+
+if [[ "$ASSUME_YES" -ne 1 ]]; then
+    read -r -p "Remove the above worktrees and their branches? [y/N]: " answer < /dev/tty
+    if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
+        echo "Aborted. Nothing was deleted."
+        exit 0
+    fi
+fi
+
+remove_flag=""
+if [[ "$FORCE" -eq 1 ]]; then
+    remove_flag="-f"
+fi
+
+FAILED=0
+for i in "${!TARGET_PATHS[@]}"; do
+    path="${TARGET_PATHS[$i]}"
+    branch="${TARGET_BRANCHES[$i]}"
+
+    # worktree を削除する。失敗しても他の候補の処理は続ける
+    if ! err=$(remove_worktree "$path" 2>&1); then
+        echo "❌ Failed to remove worktree: $path" >&2
+        sed 's/^/   /' <<< "$err" >&2
+        FAILED=1
+        continue
+    fi
+    echo "✅ Removed worktree: $path"
+
+    # ローカルブランチを削除する。squash merge の場合 -d では未マージ扱いになるため
+    # マージ済み判定を済ませているここでは -D で削除する
+    if ! branch_err=$(git branch -D "$branch" 2>&1); then
+        echo "❌ Failed to delete branch: $branch" >&2
+        echo "   $branch_err" >&2
+        FAILED=1
+        continue
+    fi
+    echo "✅ Deleted branch: $branch"
+done
+
+exit "$FAILED"
