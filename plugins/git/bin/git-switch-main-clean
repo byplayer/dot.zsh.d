@@ -2,8 +2,6 @@
 
 set -eu
 
-source "$(dirname "$0")/common.bash"
-
 # Check for uncommitted or untracked files
 if ! git diff-index --quiet HEAD -- || [ -n "$(git ls-files --others --exclude-standard)" ]; then
     echo "❌ Error: You have uncommitted changes or untracked files."
