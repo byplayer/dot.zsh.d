@@ -2,9 +2,6 @@
 
 set -ue
 
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-source "${SCRIPT_DIR}/common.bash"
-
 # 使い方を表示する
 usage() {
     cat <<'USAGE'
