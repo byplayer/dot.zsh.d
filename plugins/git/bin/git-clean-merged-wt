@@ -15,6 +15,11 @@ Usage: git clean-merged-wt [-n] [-y] [-f] [-h]
   2. 全コミットが patch 等価でベースに含まれる (rebase merge)
   3. ブランチのツリーを 1 コミットにまとめたものが patch 等価で含まれる (squash merge)
 
+ただし、ベースから分岐した後に自分のコミットが 1 つも無いブランチ
+(先端がベースブランチの first-parent 履歴上にあるもの)は、これから開発を始める
+ブランチの可能性があるため -f 指定時を除いて対象外にします。
+(fast-forward でマージされたブランチも原理的に区別できないため保護されます)
+
 submodule を含む worktree は git worktree remove では削除できないため、
 submodule 内も含めて未コミットの変更が無い場合に限り、submodule を deinit してから
 強制削除します。
@@ -26,6 +31,7 @@ Options:
   -y    確認プロンプトを出さずに削除する
   -f    未コミットの変更があっても強制削除する
         (git worktree remove -f / git branch -D)
+        併せて、自分のコミットが無いブランチも削除対象に含める
   -h    このヘルプを表示する
 
 以下の worktree は対象外です。
@@ -142,6 +148,30 @@ merged_into() {
     return 1
 }
 
+# ブランチ $1 が「ベース $2 から分岐しただけで自分のコミットを持たない」かを判定する。
+#
+# 先端がベースの first-parent 履歴上にあるかで判定する。
+#   - 未開発ブランチ  : 先端はベース本流のコミットそのもの        -> first-parent 上にある
+#   - merge commit    : ブランチのコミットは merge の第 2 parent 側 -> first-parent 上に無い
+#   - rebase / squash : そもそもベースの祖先ではないのでここには来ない
+# fast-forward マージ済みのブランチは未開発ブランチと区別が付かないため、
+# 安全側に倒して「未開発」と判定される(削除には -f が必要になる)。
+undeveloped_branch() {
+    local branch="$1"
+    local base="$2"
+
+    local tip
+    tip=$(git rev-parse --verify --quiet "${branch}^{commit}") || return 1
+
+    # 走査範囲を先端の手前までに絞る(root commit の場合はベース全体を見る)
+    local range="$base"
+    if git rev-parse --verify --quiet "${tip}^" > /dev/null; then
+        range="${tip}^..${base}"
+    fi
+
+    git rev-list --first-parent "$range" | grep -qxF "$tip"
+}
+
 # worktree $1 の未コミットの変更を porcelain 形式で出力する。
 # 親側は submodule の状態を除いて出力し、submodule 内の変更は
 # submodule foreach で再帰的に集めて [<submodule path>] 付きで出力する。
@@ -216,14 +246,19 @@ TARGET_PATHS=()
 TARGET_BRANCHES=()
 TARGET_REASONS=()
 
+# 自分のコミットが無いために保護した worktree(-f 未指定時のみ)
+SKIPPED_PATHS=()
+SKIPPED_BRANCHES=()
+
 wt_path=""
 wt_branch=""
 wt_detached=0
 
 # --porcelain の 1 レコード分($1: worktree パス, $2: ブランチ名, $3: detached なら 1)を
 # 受け取り、削除候補なら TARGET_PATHS / TARGET_BRANCHES / TARGET_REASONS に追記する。
-# 参照するグローバル: MAIN_WORKTREE, CURRENT_WORKTREE, BASE_BRANCHES
-# 追記するグローバル: TARGET_PATHS, TARGET_BRANCHES, TARGET_REASONS
+# 参照するグローバル: MAIN_WORKTREE, CURRENT_WORKTREE, BASE_BRANCHES, FORCE
+# 追記するグローバル: TARGET_PATHS, TARGET_BRANCHES, TARGET_REASONS,
+#                    SKIPPED_PATHS, SKIPPED_BRANCHES
 collect_if_removable() {
     local path="$1"
     local branch="$2"
@@ -259,6 +294,14 @@ collect_if_removable() {
     local how
     for base in "${BASE_BRANCHES[@]}"; do
         if how=$(merged_into "$branch" "$base"); then
+            # 分岐しただけで自分のコミットが無いブランチは、これから開発する
+            # ブランチの可能性があるため -f 指定時以外は保護する
+            if [[ "$FORCE" -ne 1 ]] && undeveloped_branch "$branch" "$base"; then
+                SKIPPED_PATHS+=("$path")
+                SKIPPED_BRANCHES+=("$branch")
+                return 0
+            fi
+
             TARGET_PATHS+=("$path")
             TARGET_BRANCHES+=("$branch")
             TARGET_REASONS+=("${how} into ${base}")
@@ -286,6 +329,16 @@ while IFS= read -r line; do
 done < <(git worktree list --porcelain)
 # 最後のレコードを判定する
 collect_if_removable "$wt_path" "$wt_branch" "$wt_detached"
+
+# 自分のコミットが無いために保護した worktree を先に知らせる
+if [[ ${#SKIPPED_PATHS[@]} -gt 0 ]]; then
+    echo "The following worktrees have no commits of their own and are kept:"
+    for i in "${!SKIPPED_PATHS[@]}"; do
+        printf '  %s (branch: %s)\n' "${SKIPPED_PATHS[$i]}" "${SKIPPED_BRANCHES[$i]}"
+    done
+    echo "  Use -f to remove them as well."
+    echo
+fi
 
 if [[ ${#TARGET_PATHS[@]} -eq 0 ]]; then
     echo "No merged worktrees found."
