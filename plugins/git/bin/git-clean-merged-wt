@@ -20,6 +20,11 @@ Usage: git clean-merged-wt [-n] [-y] [-f] [-h]
 ブランチの可能性があるため -f 指定時を除いて対象外にします。
 (fast-forward でマージされたブランチも原理的に区別できないため保護されます)
 
+環境変数 GIT_CLEAN_MERGED_WT_KEEP_BRANCHES に削除除外ブランチを指定できます。
+カンマまたは空白区切りで複数指定でき、glob パターン(例: release/*)も使えます。
+指定したブランチは -f を付けても削除されません。
+  例: GIT_CLEAN_MERGED_WT_KEEP_BRANCHES='nishiiwa,release/*'
+
 submodule を含む worktree は git worktree remove では削除できないため、
 submodule 内も含めて未コミットの変更が無い場合に限り、submodule を deinit してから
 強制削除します。
@@ -35,6 +40,7 @@ Options:
   -h    このヘルプを表示する
 
 以下の worktree は対象外です。
+  - GIT_CLEAN_MERGED_WT_KEEP_BRANCHES に一致するブランチの worktree
   - main / develop / master をチェックアウトしている worktree
   - メインの worktree (bare でないリポジトリ本体)
   - カレントディレクトリを含む worktree
@@ -74,6 +80,32 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
+
+# 環境変数で指定された削除除外ブランチ(カンマまたは空白区切り、glob パターン可)。
+# bash 3.2 では set -u 下の空配列展開が unbound variable になるため、
+# 参照側では要素数を確認してから展開する。
+KEEP_BRANCHES=()
+if [[ -n "${GIT_CLEAN_MERGED_WT_KEEP_BRANCHES:-}" ]]; then
+    read -r -a KEEP_BRANCHES <<< "${GIT_CLEAN_MERGED_WT_KEEP_BRANCHES//,/ }"
+fi
+
+# ブランチ $1 が削除除外指定に一致するかを判定する。
+keep_branch() {
+    local branch="$1"
+
+    [[ ${#KEEP_BRANCHES[@]} -gt 0 ]] || return 1
+
+    local pattern
+    for pattern in "${KEEP_BRANCHES[@]}"; do
+        # 右辺はクォートせず glob パターンとして評価させる
+        # shellcheck disable=SC2053
+        if [[ "$branch" == $pattern ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
 
 # git リポジトリ内かどうかを確認する
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -250,15 +282,20 @@ TARGET_REASONS=()
 SKIPPED_PATHS=()
 SKIPPED_BRANCHES=()
 
+# 削除除外指定により保護した worktree(-f 指定時も保護する)
+KEPT_PATHS=()
+KEPT_BRANCHES=()
+
 wt_path=""
 wt_branch=""
 wt_detached=0
 
 # --porcelain の 1 レコード分($1: worktree パス, $2: ブランチ名, $3: detached なら 1)を
 # 受け取り、削除候補なら TARGET_PATHS / TARGET_BRANCHES / TARGET_REASONS に追記する。
-# 参照するグローバル: MAIN_WORKTREE, CURRENT_WORKTREE, BASE_BRANCHES, FORCE
+# 参照するグローバル: MAIN_WORKTREE, CURRENT_WORKTREE, BASE_BRANCHES, FORCE,
+#                    KEEP_BRANCHES
 # 追記するグローバル: TARGET_PATHS, TARGET_BRANCHES, TARGET_REASONS,
-#                    SKIPPED_PATHS, SKIPPED_BRANCHES
+#                    SKIPPED_PATHS, SKIPPED_BRANCHES, KEPT_PATHS, KEPT_BRANCHES
 collect_if_removable() {
     local path="$1"
     local branch="$2"
@@ -294,6 +331,13 @@ collect_if_removable() {
     local how
     for base in "${BASE_BRANCHES[@]}"; do
         if how=$(merged_into "$branch" "$base"); then
+            # 削除除外指定されたブランチは -f を付けても削除しない
+            if keep_branch "$branch"; then
+                KEPT_PATHS+=("$path")
+                KEPT_BRANCHES+=("$branch")
+                return 0
+            fi
+
             # 分岐しただけで自分のコミットが無いブランチは、これから開発する
             # ブランチの可能性があるため -f 指定時以外は保護する
             if [[ "$FORCE" -ne 1 ]] && undeveloped_branch "$branch" "$base"; then
@@ -329,6 +373,15 @@ while IFS= read -r line; do
 done < <(git worktree list --porcelain)
 # 最後のレコードを判定する
 collect_if_removable "$wt_path" "$wt_branch" "$wt_detached"
+
+# 削除除外指定により保護した worktree を先に知らせる
+if [[ ${#KEPT_PATHS[@]} -gt 0 ]]; then
+    echo "The following worktrees are kept by GIT_CLEAN_MERGED_WT_KEEP_BRANCHES:"
+    for i in "${!KEPT_PATHS[@]}"; do
+        printf '  %s (branch: %s)\n' "${KEPT_PATHS[$i]}" "${KEPT_BRANCHES[$i]}"
+    done
+    echo
+fi
 
 # 自分のコミットが無いために保護した worktree を先に知らせる
 if [[ ${#SKIPPED_PATHS[@]} -gt 0 ]]; then
