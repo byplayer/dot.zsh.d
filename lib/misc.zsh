@@ -88,7 +88,7 @@ function copy_basename() {
   local path="${url%%\?*}"
   local copy_name="${path##*/}"
   printf '%s' "$copy_name" | /usr/bin/pbcopy
-  print -r -- "copied: $copy_name"
+  print -r -- "$copy_name"
 }
 
 # use custom emacs
