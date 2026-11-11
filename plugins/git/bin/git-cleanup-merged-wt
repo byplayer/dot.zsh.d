@@ -5,7 +5,7 @@ set -ue
 # 使い方を表示する
 usage() {
     cat <<'USAGE'
-Usage: git clean-merged-wt [-n] [-y] [-f] [-h]
+Usage: git cleanup-merged-wt [-n] [-y] [-f] [-h]
 
 ベースブランチ(main / develop / master)にマージ済みのブランチを
 チェックアウトしている git worktree を探し、worktree とローカルブランチを削除します。
